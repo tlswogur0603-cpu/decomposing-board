@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.post import PostCreate, PostRead
 from app.core.database import get_db
-from app.services.post_service import create_post_service, get_posts_service
+from app.services.post_service import create_post_service, get_posts_service, get_post_detail_service
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -22,3 +22,10 @@ def get_posts(
     db: Session = Depends(get_db),
 ) -> list[PostRead]:
     return get_posts_service(db=db)
+
+@router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
+def get_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+) -> PostRead:
+    return get_post_detail_service(db=db, post_id=post_id)
