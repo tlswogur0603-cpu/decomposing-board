@@ -5,8 +5,9 @@
 
 from sqlalchemy.orm import Session
 from app.models.post import Post
-from app.schemas.post import PostCreate
+from app.schemas.post import PostCreate, PostUpdate
 
+# 게시글 생성: 요청 데이터를 Post ORM 객체로 변환해 DB에 저장
 def create_post(
         db: Session,
         post: PostCreate,
@@ -24,8 +25,29 @@ def create_post(
 
     return new_post
 
+# 게시글 전체 조회: created_at 기준 최신순으로 모든 게시글을 조회
 def get_posts(db: Session) -> list[Post]:
     return db.query(Post).order_by(Post.created_at.desc()).all()
 
+# 게시글 단일 조회: post_id와 일치하는 게시글 하나를 조회
 def get_post_by_id(db: Session, post_id: int) -> Post | None:
-    return db.query(Post).filter(post_id == post_id).first()
+    return db.query(Post).filter(Post.id == post_id).first()
+
+# 게시글 수정: post_id로 게시글을 찾고 title/content를 수정
+def update_post(
+        db: Session,
+        post_id: int,
+        post_update: PostUpdate,
+) -> Post | None:
+    post = db.query(Post).filter(Post.id == post_id).first()
+
+    if post is None:
+        return None
+    
+    post.title = post_update.title
+    post.content = post_update.content
+
+    db.commit()
+    db.refresh(post)
+
+    return post
