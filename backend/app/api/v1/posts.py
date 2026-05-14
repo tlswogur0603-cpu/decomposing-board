@@ -4,9 +4,9 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.schemas.post import PostCreate, PostRead
+from app.schemas.post import PostCreate, PostRead, PostUpdate
 from app.core.database import get_db
-from app.services.post_service import create_post_service, get_posts_service, get_post_detail_service
+from app.services.post_service import create_post_service, get_posts_service, get_post_detail_service, update_post_service
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -29,3 +29,11 @@ def get_post(
     db: Session = Depends(get_db),
 ) -> PostRead:
     return get_post_detail_service(db=db, post_id=post_id)
+
+@router.put("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
+def update_post(
+    post_id: int,
+    post_update: PostUpdate,
+    db: Session = Depends(get_db),
+) -> PostRead:
+    return update_post_service(db=db, post_id=post_id, post_update=post_update)
