@@ -51,3 +51,18 @@ def update_post(
     db.refresh(post)
 
     return post
+
+# 게시글 삭제: post_id로 게시글을 찾고 삭제
+def delete_post(
+        db: Session,
+        post_id: int,
+) -> Post | None:
+    post = db.query(Post).filter(Post.id == post_id).first()
+
+    if post is None:
+        return None
+    
+    db.delete(post)
+    db.commit()
+
+    return post
