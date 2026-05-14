@@ -23,3 +23,6 @@ def create_post(
     db.refresh(new_post)
 
     return new_post
+
+def get_posts(db: Session) -> list[Post]:
+    return db.query(Post).order_by(Post.created_at.desc()).all()
