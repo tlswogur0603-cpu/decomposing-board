@@ -26,3 +26,6 @@ def create_post(
 
 def get_posts(db: Session) -> list[Post]:
     return db.query(Post).order_by(Post.created_at.desc()).all()
+
+def get_post_by_id(db: Session, post_id: int) -> Post | None:
+    return db.query(Post).filter(post_id == post_id).first()
