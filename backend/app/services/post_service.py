@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.post import PostCreate, PostUpdate
 from app.models.post import Post
-from app.repositories.post_repository import create_post, get_posts, get_post_by_id, update_post
+from app.repositories.post_repository import create_post, get_posts, get_post_by_id, update_post, delete_post
 
 def create_post_service(
         db: Session,
@@ -45,10 +45,24 @@ def update_post_service(
 ) -> Post:
     updated_post = update_post(db=db, post_id=post_id, post_update=post_update)
 
-    if update_post is None:
+    if updated_post is None:
         raise HTTPException(
             status_code=404,
             detail="게시글을 찾을 수 없습니다.",
         ) 
     
-    return update_post
+    return updated_post
+
+def delete_post_service(
+        db: Session,
+        post_id: int,
+) -> Post:
+    deleted_post = delete_post(db=db, post_id=post_id)
+
+    if deleted_post is None:
+        raise HTTPException(
+            status_code=404,
+            detail="게시글을 찾을 수 없습니다."
+        )
+    
+    return deleted_post
