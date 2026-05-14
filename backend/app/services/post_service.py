@@ -5,9 +5,9 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.schemas.post import PostCreate
+from app.schemas.post import PostCreate, PostUpdate
 from app.models.post import Post
-from app.repositories.post_repository import create_post, get_posts, get_post_by_id
+from app.repositories.post_repository import create_post, get_posts, get_post_by_id, update_post
 
 def create_post_service(
         db: Session,
@@ -37,3 +37,18 @@ def get_post_detail_service(
         )
     
     return post
+
+def update_post_service(
+        db: Session,
+        post_id: int,
+        post_update: PostUpdate,
+) -> Post:
+    updated_post = update_post(db=db, post_id=post_id, post_update=post_update)
+
+    if update_post is None:
+        raise HTTPException(
+            status_code=404,
+            detail="게시글을 찾을 수 없습니다.",
+        ) 
+    
+    return update_post
