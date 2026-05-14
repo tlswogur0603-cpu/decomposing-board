@@ -5,7 +5,7 @@
 from sqlalchemy.orm import Session
 from app.schemas.post import PostCreate
 from app.models.post import Post
-from app.repositories.post_repository import create_post
+from app.repositories.post_repository import create_post, get_posts
 
 def create_post_service(
         db: Session,
@@ -18,3 +18,6 @@ def create_post_service(
         post=post,
         author_id=author_id,
     )
+
+def get_posts_service(db: Session) -> list[Post]:
+    return get_posts(db=db)
