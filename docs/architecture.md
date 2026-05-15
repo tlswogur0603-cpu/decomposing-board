@@ -1,4 +1,3 @@
-```markdown
 # Architecture Design
 
 ## 1. 개요 (Architecture Philosophy)

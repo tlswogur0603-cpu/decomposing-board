@@ -1,4 +1,3 @@
-```markdown
 # Product Requirement Document (PRD) - TraceBoard AI
 
 ## 1. 목적 및 비전
