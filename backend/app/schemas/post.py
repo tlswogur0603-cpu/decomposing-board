@@ -17,4 +17,6 @@ class PostRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-# 기본 스키마 요청 응답 데이터 규격 정의
+class PostUpdate(BaseModel):
+    title: str | None = Field(None, max_length=30)
+    content: str = Field(..., min_length=1, max_length=300)
