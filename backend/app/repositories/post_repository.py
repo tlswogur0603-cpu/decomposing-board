@@ -5,7 +5,7 @@
 
 from sqlalchemy.orm import Session
 from app.models.post import Post
-from app.schemas.post import PostCreate, PostUpdate
+from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
 
 # 게시글 생성: 요청 데이터를 Post ORM 객체로 변환해 DB에 저장
 def create_post(
@@ -25,9 +25,19 @@ def create_post(
 
     return new_post
 
-# 게시글 전체 조회: created_at 기준 최신순으로 모든 게시글을 조회
-def get_posts(db: Session) -> list[Post]:
-    return db.query(Post).order_by(Post.created_at.desc()).all()
+# 게시글 목록 조회(페이지네이션 적용): created_at 기준 내림차순 정렬 후 limit/offset 적용
+def fetch_posts_list(db: Session, limit: int, offset: int) -> list[Post]:
+    return (
+        db.query(Post)
+        .order_by(Post.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+
+# 게시글 전체 개수 조회
+def get_posts_count(db: Session) -> int:
+    return db.query(Post).count()
 
 # 게시글 단일 조회: post_id와 일치하는 게시글 하나를 조회
 def get_post_by_id(db: Session, post_id: int) -> Post | None:
