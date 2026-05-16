@@ -30,8 +30,8 @@ def fetch_posts_list(db: Session, limit: int, offset: int) -> list[Post]:
     return (
         db.query(Post)
         .order_by(Post.created_at.desc())
-        .limit(limit)
         .offset(offset)
+        .limit(limit)
         .all()
     )
 
