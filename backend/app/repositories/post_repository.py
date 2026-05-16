@@ -3,6 +3,7 @@
 # db 세션을 사용해 posts 테이블에 저장한다.
 # 저장 후 DB에서 생성된 id, created_at 값을 반영한 Post 객체를 반환한다.
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.models.post import Post
 from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
@@ -32,6 +33,26 @@ def fetch_posts_list(db: Session, limit: int, offset: int) -> list[Post]:
         .order_by(Post.created_at.desc())
         .offset(offset)
         .limit(limit)
+        .all()
+    )
+
+# 게시글 검색: title/content에 query가 포함된 게시글을 조회
+def search_posts_repository(db: Session, q: str) -> list[Post]:
+    trimmed_q = q.strip()
+    if not trimmed_q:
+        return []
+
+    search_pattern = f"%{trimmed_q}%"
+
+    return (
+        db.query(Post)
+        .filter(
+            or_(
+                Post.title.ilike(search_pattern),
+                Post.content.ilike(search_pattern),
+            )
+        )
+        .order_by(Post.created_at.desc())
         .all()
     )
 

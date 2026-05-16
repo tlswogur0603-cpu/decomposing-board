@@ -8,7 +8,7 @@ import math
 
 from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
 from app.models.post import Post
-from app.repositories.post_repository import create_post, fetch_posts_list, get_posts_count, get_post_by_id, update_post, delete_post
+from app.repositories.post_repository import create_post, fetch_posts_list, get_posts_count, get_post_by_id, update_post, delete_post, search_posts_repository
 
 def create_post_service(
         db: Session,
@@ -40,6 +40,9 @@ def get_posts_service(
         limit=limit,
         items=items,
     )
+
+def search_posts_service(db: Session, q: str) -> list[Post]:
+    return search_posts_repository(db=db, q=q)
 
 def get_post_detail_service(
         db: Session,

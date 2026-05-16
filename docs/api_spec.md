@@ -91,7 +91,55 @@
 
 ---
 
-## 3. 단일 게시글 조회 (Get Post Detail)
+## 3. 게시글 검색 (Search Posts)
+
+**GET** `/posts/search`
+
+### 설명
+- 게시글 제목 또는 본문에 검색어가 포함된 게시글 목록 조회
+- 검색 결과는 `created_at` 기준 최신순으로 정렬
+- 검색어가 비어 있거나 검색 결과가 없으면 빈 리스트 반환
+
+### Query Parameters
+
+| Name | Type | Required | Default | Validation | Description |
+| --- | --- | --- | --- | --- | --- |
+| `q` | string | No | `""` | `max_length=50` | 검색할 키워드 |
+
+### Request Example
+
+`GET /posts/search?q=FastAPI`
+
+### Response
+
+[
+{
+"id": 1,
+"title": "FastAPI 학습",
+"content": "FastAPI Query Parameter를 학습했습니다.",
+"author_id": 1,
+"created_at": "2026-05-15T12:00:00"
+}
+]
+
+### Empty Response
+
+[
+]
+
+### Status Codes
+- `200 OK`
+- `422 Validation Error`
+
+### Notes
+- `q` 값은 앞뒤 공백을 제거한 뒤 검색에 사용된다.
+- `title` 또는 `content`에 검색어가 포함되면 결과에 포함된다.
+- `ILIKE`를 사용하여 대소문자를 구분하지 않는 검색을 수행한다.
+- `GET /posts/search`처럼 검색어가 없으면 빈 리스트를 반환한다.
+
+---
+
+## 4. 단일 게시글 조회 (Get Post Detail)
 
 **GET** `/posts/{post_id}`
 
@@ -118,7 +166,7 @@ post_id: int
 
 ---
 
-## 4. 게시글 수정 (Update Post)
+## 5. 게시글 수정 (Update Post)
 
 **PUT** `/posts/{post_id}`
 
@@ -149,7 +197,7 @@ post_id: int
 
 ---
 
-## 5. 게시글 삭제 (Delete Post)
+## 6. 게시글 삭제 (Delete Post)
 
 **DELETE** `/posts/{post_id}`
 
