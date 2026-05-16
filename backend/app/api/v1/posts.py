@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.post import PostCreate, PostRead, PostUpdate, PostPaginationResponse
 from app.core.database import get_db
-from app.services.post_service import create_post_service, get_posts_service, get_post_detail_service, update_post_service, delete_post_service
+from app.services.post_service import create_post_service, get_posts_service, search_posts_service, get_post_detail_service, update_post_service, delete_post_service
 
 router = APIRouter(prefix="/posts", tags=["posts"])
 
@@ -24,6 +24,13 @@ def get_posts(
     db: Session = Depends(get_db),
 ) -> PostPaginationResponse:
     return get_posts_service(db=db, page=page, limit=limit)
+
+@router.get("/search", response_model=list[PostRead], status_code=status.HTTP_200_OK)
+def search_posts(
+    q: str = Query(default="", max_length=50, description="검색할 키워드 (제목 또는 본문 기준)"),
+    db: Session = Depends(get_db),
+) -> list[PostRead]:
+    return search_posts_service(db=db, q=q)
 
 @router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
 def get_post(
