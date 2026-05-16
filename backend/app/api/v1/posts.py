@@ -1,10 +1,10 @@
 # 게시글 API 라우터
 # 요청 검증(PostCreate), DB 세션 주입(get_db), 서비스 로직 호출을 담당
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.schemas.post import PostCreate, PostRead, PostUpdate
+from app.schemas.post import PostCreate, PostRead, PostUpdate, PostPaginationResponse
 from app.core.database import get_db
 from app.services.post_service import create_post_service, get_posts_service, get_post_detail_service, update_post_service, delete_post_service
 
@@ -17,11 +17,13 @@ def create_post(
 ) -> PostRead:
     return create_post_service(db=db, post=post)
 
-@router.get("", response_model=list[PostRead], status_code=status.HTTP_200_OK)
+@router.get("", response_model=PostPaginationResponse, status_code=status.HTTP_200_OK)
 def get_posts(
+    page: int = Query(1, ge=1),
+    limit: int = Query(3, ge=1, le=10),
     db: Session = Depends(get_db),
-) -> list[PostRead]:
-    return get_posts_service(db=db)
+) -> PostPaginationResponse:
+    return get_posts_service(db=db, page=page, limit=limit)
 
 @router.get("/{post_id}", response_model=PostRead, status_code=status.HTTP_200_OK)
 def get_post(
