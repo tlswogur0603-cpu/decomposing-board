@@ -20,3 +20,10 @@ class PostRead(BaseModel):
 class PostUpdate(BaseModel):
     title: str | None = Field(None, max_length=30)
     content: str = Field(..., min_length=1, max_length=300)
+
+class PostPaginationResponse(BaseModel):
+    total_count: int      # 전체 게시글 수
+    total_pages: int      # 총 페이지 수
+    current_page: int     # 현재 페이지
+    limit: int            # 페이지당 개수
+    items: list[PostRead] # 실제 게시글 데이터 리스트

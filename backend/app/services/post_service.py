@@ -4,10 +4,11 @@
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+import math
 
-from app.schemas.post import PostCreate, PostUpdate
+from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
 from app.models.post import Post
-from app.repositories.post_repository import create_post, get_posts, get_post_by_id, update_post, delete_post
+from app.repositories.post_repository import create_post, fetch_posts_list, get_posts_count, get_post_by_id, update_post, delete_post
 
 def create_post_service(
         db: Session,
@@ -21,8 +22,24 @@ def create_post_service(
         author_id=author_id,
     )
 
-def get_posts_service(db: Session) -> list[Post]:
-    return get_posts(db=db)
+def get_posts_service(
+        db: Session,
+        limit: int,
+        page: int,
+) -> PostPaginationResponse:
+    offset = (page - 1) * limit 
+
+    items = fetch_posts_list(db=db, limit=limit, offset=offset)
+    total_count = get_posts_count(db=db)
+    total_pages = math.ceil(total_count / limit ) if total_count > 0 else 0
+
+    return PostPaginationResponse(
+        total_count=total_count,
+        total_pages=total_pages,
+        current_page=page,
+        limit=limit,
+        items=items,
+    )
 
 def get_post_detail_service(
         db: Session,
