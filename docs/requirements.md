@@ -89,8 +89,13 @@ AI 기반 지식 관리 플랫폼 구축을 목표로 한다.
 ### 성능
 - RESTful API 구조 유지
 - 빠른 CRUD 응답 속도
-- 향후 비동기 확장 가능 구조
-
+- 현재 MVP 단계에서는 sync SQLAlchemy 구조를 유지
+- DB 조회 성능 최적화(Query, Pagination, Indexing) 우선 고려
+- 향후 아래 조건에서 async 구조 검토:
+  - LLM API 호출 증가
+  - 문서 업로드/처리 증가
+  - Vector DB 연산 증가
+  - 동시 사용자 수 증가
 ---
 
 ### 유지보수성
