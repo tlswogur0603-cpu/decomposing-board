@@ -10,3 +10,7 @@ class SourcePost(BaseModel):
 class AIQueryResponse(BaseModel):
     answer: str
     sources: list[SourcePost]
+
+class PostIndexResponse(BaseModel):
+    indexed_count: int
+    message: str
