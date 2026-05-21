@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+pydantic-settings
+
+langchain
+langchain-chroma
+langchain-google-genai
+
+chromadb
+google-generativeai
+python-dotenv
