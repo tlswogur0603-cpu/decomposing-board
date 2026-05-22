@@ -3,8 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# 환경 변수 및 보안 파일 
+# 가상환경 제외
+venv/
+.venv/
+
+# 환경 변수 및 보안 파일
 .env
 .env.local
 .env.*
 !.env.example
+
+# Vector DB 로컬 저장 데이터 제외
+chroma_db/
+
+# IDE 설정 파일 제외
+.vscode/
+.idea/
+
+# 운영체제 파일 제외
+.DS_Store

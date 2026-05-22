@@ -4,7 +4,9 @@
 
 from fastapi import FastAPI
 from app.api.v1.posts import router as posts_router
+from app.api.v1.ai import router as ai_router
 
 app = FastAPI()
 
 app.include_router(posts_router, prefix="/api/v1")
+app.include_router(ai_router, prefix="/api/v1")
