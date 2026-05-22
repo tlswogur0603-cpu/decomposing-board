@@ -110,6 +110,7 @@ POST /ai/query
 ## Folder Structure
 
 ​
+```text
 backend/app/
 ├── api/v1/          # API 엔드포인트
 ├── core/            # 설정 및 DB 연결
@@ -118,6 +119,8 @@ backend/app/
 ├── repositories/    # 데이터 접근 계층
 ├── services/        # 비즈니스 로직 (RAG 포함)
 └── main.py          # 앱 진입점
+
+```
 
 ---
 
