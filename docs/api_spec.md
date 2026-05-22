@@ -264,3 +264,56 @@ Client Request
 - `POST /documents/upload`
 - `POST /ai/query`
 - `GET /ai/history`
+
+---
+
+## 7. RAG 인덱싱 (Index Post)
+
+**POST** `/ai/index-post/{post_id}`
+
+### 설명
+- 특정 게시글을 Vector DB에 저장 (임베딩 생성)
+
+### Path Parameter
+- post_id: int
+
+### Response
+
+{
+  "message": "Post indexed successfully"
+}
+
+### Status Codes
+- 200 OK
+- 404 Not Found
+
+---
+
+## 8. RAG 질의응답 (Query)
+
+**POST** `/ai/query`
+
+### 설명
+- 사용자 질문을 기반으로 유사 문서를 검색하고 LLM을 통해 답변 생성
+
+### Request Body
+
+{
+  "query": "질문 내용"
+}
+
+### Response
+
+{
+  "answer": "AI가 생성한 답변",
+  "sources": [
+    {
+      "post_id": 1,
+      "title": "관련 문서 제목"
+    }
+  ]
+}
+
+### Status Codes
+- 200 OK
+- 422 Validation Error
