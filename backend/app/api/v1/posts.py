@@ -3,6 +3,7 @@
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.post import PostCreate, PostRead, PostUpdate, PostPaginationResponse
 from app.core.database import get_db
@@ -11,11 +12,11 @@ from app.services.post_service import create_post_service, get_posts_service, se
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 @router.post("", response_model=PostRead, status_code=status.HTTP_201_CREATED)
-def create_post(
+async def create_post(
     post: PostCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> PostRead:
-    return create_post_service(db=db, post=post)
+    return await create_post_service(db=db, post=post)
 
 @router.get("", response_model=PostPaginationResponse, status_code=status.HTTP_200_OK)
 def get_posts(
