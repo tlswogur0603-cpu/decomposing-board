@@ -1,13 +1,13 @@
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.schemas.ai import AIQueryResponse, PostIndexResponse, SourcePost
 from app.repositories.post_repository import get_post_by_id
 from app.repositories.vector_repository import save_post_to_vector_store, search_similar_posts
 from app.services.llm_service import generate_answer
 
-def index_single_post_service(db: Session, post_id: int) -> PostIndexResponse:
-    post = get_post_by_id(db=db, post_id=post_id)
+async def index_single_post_service(db: AsyncSession, post_id: int) -> PostIndexResponse:
+    post = await get_post_by_id(db=db, post_id=post_id)
     
     if post is None:
         raise HTTPException(
@@ -15,7 +15,7 @@ def index_single_post_service(db: Session, post_id: int) -> PostIndexResponse:
             detail="해당 게시글을 찾을 수 없습니다.",
         )
 
-    save_post_to_vector_store(
+    await save_post_to_vector_store(
         post_id=post.id,
         title=post.title,
         content=post.content,
