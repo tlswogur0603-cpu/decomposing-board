@@ -4,19 +4,20 @@
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 import math
 
 from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
 from app.models.post import Post
 from app.repositories.post_repository import create_post, fetch_posts_list, get_posts_count, get_post_by_id, update_post, delete_post, search_posts_repository
 
-def create_post_service(
-        db: Session,
+async def create_post_service(
+        db: AsyncSession,
         post: PostCreate,
 ) -> Post:
     author_id = 1 # TODO: 로그인 기능 구현 후 current_user.id로 교체
 
-    return create_post(
+    return await create_post(
         db=db,
         post=post,
         author_id=author_id,
