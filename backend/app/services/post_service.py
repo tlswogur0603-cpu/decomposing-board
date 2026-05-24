@@ -5,6 +5,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import BackgroundTasks
 import math
 
 from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
@@ -16,6 +17,7 @@ from app.repositories.post_repository import create_post, fetch_posts_list, get_
 async def create_post_service(
         db: AsyncSession,
         post: PostCreate,
+        background_tasks: BackgroundTasks,
 ) -> Post:
     author_id = 1 # TODO: 로그인 기능 구현 후 current_user.id로 교체
 
@@ -29,13 +31,8 @@ async def create_post_service(
     # 트랜잭션 확정
     await db.commit()
     await db.refresh(new_post)
-
-    # 인덱싱 실행
-    try:
-        await run_indexing(db, new_post.id)
-    except Exception as e:
-        # 로깅
-        print(f"Indexing failed: {e}")
+    # 인덱싱 작업 등록
+    background_tasks.add_task(run_indexing, new_post.id)
 
     return new_post
 
