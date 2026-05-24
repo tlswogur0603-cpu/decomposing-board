@@ -9,19 +9,35 @@ import math
 
 from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
 from app.models.post import Post
+from app.services.indexing_service import run_indexing
 from app.repositories.post_repository import create_post, fetch_posts_list, get_posts_count, get_post_by_id, update_post, delete_post, search_posts_repository
 
+# 게시글 생성 및 자동 인덱싱
 async def create_post_service(
         db: AsyncSession,
         post: PostCreate,
 ) -> Post:
     author_id = 1 # TODO: 로그인 기능 구현 후 current_user.id로 교체
 
-    return await create_post(
+    # 게시글 생성 
+    new_post = await create_post(
         db=db,
         post=post,
         author_id=author_id,
     )
+
+    # 트랜잭션 확정
+    await db.commit()
+    await db.refresh(new_post)
+
+    # 인덱싱 실행
+    try:
+        await run_indexing(db, new_post.id)
+    except Exception as e:
+        # 로깅
+        print(f"Indexing failed: {e}")
+
+    return new_post
 
 def get_posts_service(
         db: Session,

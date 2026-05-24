@@ -19,12 +19,12 @@ async def create_post(
     return await create_post_service(db=db, post=post)
 
 @router.get("", response_model=PostPaginationResponse, status_code=status.HTTP_200_OK)
-def get_posts(
+async def get_posts(
     page: int = Query(1, ge=1),
     limit: int = Query(3, ge=1, le=10),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ) -> PostPaginationResponse:
-    return get_posts_service(db=db, page=page, limit=limit)
+    return await get_posts_service(db=db, page=page, limit=limit)
 
 @router.get("/search", response_model=list[PostRead], status_code=status.HTTP_200_OK)
 def search_posts(
