@@ -4,19 +4,20 @@
 # SQLAlchemy 모델들이 상속할 Base를 정의한다.
 # FastAPI Depends에서 사용할 get_db 함수로 세션 생성/종료를 관리한다.
 
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
-engine = create_engine(settings.DATABASE_URL)
+engine = create_async_engine(settings.DATABASE_URL, future=True, echo=False)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+AsyncSessionLocal = sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
 
 Base = declarative_base()
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session

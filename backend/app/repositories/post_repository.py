@@ -5,12 +5,14 @@
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.models.post import Post
 from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
 
 # 게시글 생성: 요청 데이터를 Post ORM 객체로 변환해 DB에 저장
-def create_post(
-        db: Session,
+async def create_post(
+        db: AsyncSession,
         post: PostCreate,
         author_id: int,
 ) -> Post:
@@ -21,8 +23,8 @@ def create_post(
     )
 
     db.add(new_post)
-    db.commit()
-    db.refresh(new_post)
+    await db.commit()
+    await db.refresh(new_post)
 
     return new_post
 
@@ -61,8 +63,16 @@ def get_posts_count(db: Session) -> int:
     return db.query(Post).count()
 
 # 게시글 단일 조회: post_id와 일치하는 게시글 하나를 조회
-def get_post_by_id(db: Session, post_id: int) -> Post | None:
-    return db.query(Post).filter(Post.id == post_id).first()
+async def get_post_by_id(
+        db: AsyncSession, 
+        post_id: int,
+) -> Post | None:
+    
+    result = await db.execute(
+        select(Post).where(Post.id==post_id)
+    )
+
+    return result.scalar_one_or_none()
 
 # 게시글 수정: post_id로 게시글을 찾고 title/content를 수정
 def update_post(

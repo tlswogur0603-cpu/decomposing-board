@@ -17,7 +17,7 @@ def get_vector_store() -> Chroma:
         embedding_function=embedding_model,
     )
 
-def save_post_to_vector_store(
+async def save_post_to_vector_store(
         post_id: int,
         title: str | None,
         content: str,
@@ -35,7 +35,7 @@ def save_post_to_vector_store(
         },
     )
 
-    vector_store.add_documents(
+    await vector_store.aadd_documents(
         documents=[document],
         ids=[f"post-{post_id}"],
     )
