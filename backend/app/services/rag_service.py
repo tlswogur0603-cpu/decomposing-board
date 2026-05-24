@@ -5,8 +5,12 @@ from app.schemas.ai import AIQueryResponse, PostIndexResponse, SourcePost
 from app.repositories.post_repository import get_post_by_id
 from app.repositories.vector_repository import save_post_to_vector_store, search_similar_posts
 from app.services.llm_service import generate_answer
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 async def index_single_post_service(db: AsyncSession, post_id: int) -> PostIndexResponse:
+    logger.info(f"🔥 indexing start: {post_id}")
     post = await get_post_by_id(db=db, post_id=post_id)
     
     if post is None:
