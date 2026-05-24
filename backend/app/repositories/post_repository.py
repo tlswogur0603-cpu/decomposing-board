@@ -23,8 +23,6 @@ async def create_post(
     )
 
     db.add(new_post)
-    await db.commit()
-    await db.refresh(new_post)
 
     return new_post
 
