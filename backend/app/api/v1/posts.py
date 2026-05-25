@@ -1,7 +1,7 @@
 # 게시글 API 라우터
 # 요청 검증(PostCreate), DB 세션 주입(get_db), 서비스 로직 호출을 담당
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,9 +14,10 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 @router.post("", response_model=PostRead, status_code=status.HTTP_201_CREATED)
 async def create_post(
     post: PostCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> PostRead:
-    return await create_post_service(db=db, post=post)
+    return await create_post_service(db=db, post=post, background_tasks=background_tasks)
 
 @router.get("", response_model=PostPaginationResponse, status_code=status.HTTP_200_OK)
 async def get_posts(

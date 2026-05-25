@@ -12,3 +12,6 @@ langchain-google-genai
 chromadb
 google-generativeai
 python-dotenv
+
+psycopg[binary]
+SQLAlchemy>=2.0.0
