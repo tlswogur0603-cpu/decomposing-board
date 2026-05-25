@@ -270,19 +270,15 @@ post_id: int
 
 ## 공통 아키텍처 흐름
 
-```text
-       Client Request
-             ↓
-  FastAPI Router (Pydantic)
-             ↓
-   Service Layer (Business)
-             ↓
-  Repository Layer (DB Abs)
-             ↓
-PostgreSQL (Supa) / Chroma (Vec)
-             ↓
-          Response
-
+```mermaid
+graph TD
+    A[Client Request] --> B[FastAPI Router (Pydantic)]
+    B --> C[Service Layer (Business)]
+    C --> D[Repository Layer (DB Abstraction)]
+    D --> E[PostgreSQL (Source of Truth)]
+    D --> F[Chroma DB (Vector Storage)]
+    E --> G[Response]
+    F --> G
 ```
 
 ---

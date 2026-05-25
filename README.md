@@ -51,9 +51,13 @@ TraceBoard AI는 단순 CRUD 게시판을 넘어 **저장된 데이터를 “검
 ## 🏗️ Architecture
 본 프로젝트는 **Layered Architecture** 기반으로 설계되었습니다.
 
-```text
-Client → API (Router) → Service (RAG) → Repository → Database / Vector DB
-
+```mermaid
+graph LR
+    A[Client] --> B[API (Router)]
+    B --> C[Service (RAG)]
+    C --> D[Repository]
+    D --> E[Database]
+    D --> F[Vector DB]
 ```
 
 - **Router**: 요청/응답 처리
@@ -92,7 +96,6 @@ backend/app/
 ├── repositories/    # 데이터 접근 계층
 ├── services/        # 비즈니스 로직 (RAG 포함)
 └── main.py          # 앱 진입점
-
 ```
 
 ---
