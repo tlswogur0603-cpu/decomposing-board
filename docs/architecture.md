@@ -18,12 +18,12 @@ TraceBoard AI는 **"변하는 것과 변하지 않는 것의 분리"**를 핵심
 
 ```mermaid
 graph TD
-    A[Client] --> B[API Layer (Router)]
-    B --> C[Service Layer (Orchestration)]
-    C --> D[Repository Layer (Abstraction)]
-    D --> E[PostgreSQL (Source of Truth)]
-    D --> F[Chroma DB (Vector Storage)]
-    C --> G[Gemini LLM]
+    A["Client"] --> B["API Layer (Router)"]
+    B --> C["Service Layer (Orchestration)"]
+    C --> D["Repository Layer (Abstraction)"]
+    D --> E["PostgreSQL (Source of Truth)"]
+    D --> F["Chroma DB (Vector Storage)"]
+    C --> G["Gemini LLM"]
 ```
 
 ---

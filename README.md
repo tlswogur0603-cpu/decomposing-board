@@ -53,11 +53,11 @@ TraceBoard AI는 단순 CRUD 게시판을 넘어 **저장된 데이터를 “검
 
 ```mermaid
 graph LR
-    A[Client] --> B[API (Router)]
-    B --> C[Service (RAG)]
-    C --> D[Repository]
-    D --> E[Database]
-    D --> F[Vector DB]
+    A["Client"] --> B["API (Router)"]
+    B --> C["Service (RAG)"]
+    C --> D["Repository"]
+    D --> E["Database"]
+    D --> F["Vector DB"]
 ```
 
 - **Router**: 요청/응답 처리

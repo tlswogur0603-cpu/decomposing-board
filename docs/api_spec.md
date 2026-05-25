@@ -272,12 +272,12 @@ post_id: int
 
 ```mermaid
 graph TD
-    A[Client Request] --> B[FastAPI Router (Pydantic)]
-    B --> C[Service Layer (Business)]
-    C --> D[Repository Layer (DB Abstraction)]
-    D --> E[PostgreSQL (Source of Truth)]
-    D --> F[Chroma DB (Vector Storage)]
-    E --> G[Response]
+    A["Client Request"] --> B["FastAPI Router (Pydantic)"]
+    B --> C["Service Layer (Business)"]
+    C --> D["Repository Layer (DB Abstraction)"]
+    D --> E["PostgreSQL (Source of Truth)"]
+    D --> F["Chroma DB (Vector Storage)"]
+    E --> G["Response"]
     F --> G
 ```
 
