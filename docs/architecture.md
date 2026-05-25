@@ -17,7 +17,7 @@ TraceBoard AI는 **"변하는 것과 변하지 않는 것의 분리"**를 핵심
 현재 시스템은 **Layered Architecture** 기반으로 구성되어 있습니다.
 
 ```text
-[ Client ]
+       [ Client ]
            │
   [ API Layer (Router) ]
            │
@@ -26,7 +26,7 @@ TraceBoard AI는 **"변하는 것과 변하지 않는 것의 분리"**를 핵심
  [ Repository Layer (Abstraction) ]
            ├── PostgreSQL (Source of Truth)
            └── Chroma DB (Vector Storage)
-
+           
 ```
 
 ---

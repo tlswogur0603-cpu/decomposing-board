@@ -271,29 +271,31 @@ post_id: int
 ## 공통 아키텍처 흐름
 
 ```text
-​Client Request
-   ↓
-FastAPI Router (Pydantic Validation)
-   ↓
-Service Layer (Business Logic / RAG)
-   ↓
-Repository Layer (DB Abstraction)
-   ↓
-PostgreSQL (Supabase) / Chroma DB (Vector)
-   ↓
-Response
+       Client Request
+             ↓
+  FastAPI Router (Pydantic)
+             ↓
+   Service Layer (Business)
+             ↓
+  Repository Layer (DB Abs)
+             ↓
+PostgreSQL (Supa) / Chroma (Vec)
+             ↓
+          Response
+
 ```
 
 ---
 
 ## 향후 확장 예정 API
 
-- [Implemented]`GET /posts/search`
-- [Implemented]`GET /posts?page=`
-- [Implemented]`POST /ai/query`
-- [Planned]`POST /documents/upload`
-- [Planned]`GET /ai/history`
-- [Planned]`DELETE /ai/index/{post_id}`
+- **[Implemented]** `GET /posts/search`
+- **[Implemented]** `GET /posts?page=`
+- **[Implemented]** `POST /ai/query`
+- **[Planned]** `POST /documents/upload`
+- **[Planned]** `GET /ai/history`
+- **[Planned]** `DELETE /ai/index/{post_id}`
+
 ---
 
 ## 7. RAG 인덱싱 (Index Post)
