@@ -1,164 +1,210 @@
 # Architecture Design
 
-## 1. 개요 (Architecture Philosophy)
-TraceBoard AI는 **"변하는 것과 변하지 않는 것의 분리"**를 핵심 원칙으로 설계되었습니다. 
-현재는 데이터의 무결성을 보장하는 RDB 기반의 웹 서비스 구조를 취하고 있으며, 향후 AI 엔진(LLM)이나 벡터 데이터베이스의 변화에 유연하게 대응할 수 있는 구조를 지향합니다.
+## 1. Overview (Architecture Philosophy)
+
+TraceBoard AI는 **"변하는 것과 변하지 않는 것의 분리"**를 핵심 원칙으로 설계되었습니다.
+
+- **변하지 않는 것**: 데이터 저장 구조 (RDB), 비즈니스 로직 흐름
+- **변하는 것**: LLM, Embedding 모델, Vector DB
+
+이를 통해 AI 기술 스택이 변경되더라도  
+전체 시스템 구조를 유지하면서 유연하게 확장할 수 있도록 설계되었습니다.
 
 ---
 
-## 2. 현재 운영 구조 (Current Implementation)
-현재 시스템은 전형적인 **Layered Architecture**를 따르며, 동기/비동기 처리를 효율적으로 관리합니다.
+## 2. System Architecture
 
-### **Data Flow: CRUD Pipeline**
-1.  **API Layer (`api/v1/`)**: 클라이언트 요청 수신 및 `Pydantic` 스키마를 통한 유효성 검증.
-2.  **Service Layer (`services/`)**: 비즈니스 정책 수행. (현재는 CRUD 로직 중계 및 기초 가공)
-3.  **Repository Layer (`repositories/`)**: `SQLAlchemy`를 통한 DB 추상화. 원시 쿼리와 비즈니스 로직을 분리.
-4.  **Database**: `PostgreSQL (Supabase)`에 영구 저장.
+현재 시스템은 **Layered Architecture** 기반으로 구성되어 있습니다.
 
----
+```text
+[ Client ]
+           │
+  [ API Layer (Router) ]
+           │
+[ Service Layer (Orchestration) ] ─── [ Gemini LLM ]
+           │
+ [ Repository Layer (Abstraction) ]
+           ├── PostgreSQL (Source of Truth)
+           └── Chroma DB (Vector Storage)
 
-## 3. AI 확장 설계 (Planned AI Pipeline)
-
-향후 도입될 AI 기능은 기존 `Service Layer`를 확장하거나 별도의 AI 전용 서비스 모듈을 통해 통합될 예정입니다.  
-TraceBoard AI의 AI 기능은 단순 LLM 호출이 아니라, 사용자가 작성한 게시글과 향후 업로드될 문서를 기반으로 답변을 생성하는 **RAG(Retrieval-Augmented Generation)** 구조를 지향합니다.
-
-### 3.1 RAG 대상 데이터
-
-#### MVP 범위
-- 현재 MVP에서는 사용자가 작성한 `posts` 데이터를 RAG 대상으로 사용합니다.
-- 게시글의 `title`과 `content`를 하나의 문서 단위로 보고 임베딩합니다.
-- 게시글 하나가 비교적 짧은 의미 단위이므로, 초기 MVP에서는 별도 chunking 없이 게시글 단위로 Vector DB에 저장합니다.
-
-#### 향후 확장 범위
-- PDF, Markdown, Text 파일 업로드 기능을 추가합니다.
-- 긴 문서는 Text Extraction 이후 chunking을 적용하여 작은 검색 단위로 분리합니다.
-- 각 chunk를 임베딩하여 Vector DB에 저장하고, 질문과 가장 유사한 chunk를 검색해 LLM context로 전달합니다.
+```
 
 ---
 
-### 3.2 Knowledge Ingestion Flow
+### Layer Responsibilities
 
-#### MVP: 게시글 기반 인덱싱
-1. 사용자가 게시글을 생성합니다.
-2. 게시글 원본 데이터는 PostgreSQL(Supabase)의 `posts` 테이블에 저장됩니다.
-3. 게시글의 `title`과 `content`를 임베딩 대상으로 구성합니다.
-4. 임베딩 모델을 통해 벡터를 생성합니다.
-5. 생성된 벡터와 metadata를 Vector DB에 저장합니다.
+- **API Layer (`api/v1/`)**
+  - 요청 수신 및 응답 반환
+  - Pydantic 기반 데이터 검증
 
-#### Vector DB Metadata
-Vector DB에는 유사도 검색 이후 LLM context와 출처 정보를 구성할 수 있도록 metadata를 함께 저장합니다.
+- **Service Layer (`services/`)**
+  - 비즈니스 로직 처리
+  - RAG 파이프라인 orchestration
 
-- `post_id`: PostgreSQL 원본 게시글 ID
-- `title`: 게시글 제목
-- `content`: 게시글 본문
+- **Repository Layer (`repositories/`)**
+  - DB 접근 추상화
+  - PostgreSQL / Vector DB 분리 관리
 
-PostgreSQL은 원본 데이터 저장소 역할을 담당하고, Vector DB는 의미 기반 검색을 위한 검색 최적화 저장소 역할을 담당합니다.
-
----
-
-### 3.3 Planned RAG Query Flow
-
-1. 사용자가 `POST /ai/query` API로 질문을 전달합니다.
-2. 서버는 사용자의 질문을 임베딩합니다.
-3. Vector DB에서 질문 벡터와 유사도가 높은 게시글 벡터를 검색합니다.
-4. 검색 결과의 metadata에서 `title`, `content`, `post_id`를 가져옵니다.
-5. 선택된 게시글 내용을 LLM의 context로 전달합니다.
-6. LLM은 context를 기반으로 답변을 생성합니다.
-7. 서버는 AI 답변과 참고한 게시글 목록을 함께 반환합니다.
+- **Database**
+  - PostgreSQL (Supabase): 원본 데이터 저장
+  - Vector DB (Chroma): 의미 기반 검색
 
 ---
 
-### 3.4 Planned API Structure
+## 3. Data Flow
 
-#### `POST /ai/index-posts`
-- PostgreSQL에 저장된 게시글을 읽어 임베딩합니다.
-- 임베딩 결과를 Vector DB에 저장합니다.
-- 초기 MVP에서는 수동 인덱싱 API로 사용하고, 향후 게시글 생성 시 자동 인덱싱 또는 background task 구조로 확장할 수 있습니다.
+### 3.1 CRUD Flow (기본 게시판 기능)
+
+1. Client → API 요청
+2. Service Layer에서 비즈니스 로직 수행
+3. Repository를 통해 DB 접근
+4. PostgreSQL에 데이터 저장/조회
+
+---
+
+## 4. RAG Architecture
+
+TraceBoard AI는 단순 LLM 호출이 아닌  
+**데이터 기반 응답 생성 구조(RAG)**를 채택합니다.
+
+---
+
+### 4.1 RAG Data Scope
+
+#### MVP
+- 게시글 (`posts`) 기반
+- `title + content` → 하나의 document
+- 별도 chunking 없이 저장
+
+#### Future
+- PDF / Markdown / Text 업로드
+- Text Extraction + Chunking
+- Chunk 단위 embedding 및 검색
+
+---
+
+### 4.2 Indexing Flow (데이터 → 지식화)
+
+본 프로젝트는 사용자 경험을 저해하지 않으면서 데이터를 지식화하기 위해 **Event-driven 방식의 비동기 인덱싱** 구조를 채택했습니다.
+
+1. **게시글 생성 요청**: Client → API
+2. **DB 저장 (Primary)**: PostgreSQL에 게시글 데이터를 즉시 저장 (`await` 처리)
+3. **응답 반환**: 사용자에게 즉시 성공 응답을 반환하여 **Latency 최소화**
+4. **Event-driven 자동 트리거**: 저장 성공 직후 `FastAPI BackgroundTasks`를 통해 비동기 인덱싱 로직 실행
+    - **Embedding 생성**: 텍스트 데이터를 벡터화 수행
+    - **Vector DB 동기화**: Chroma DB에 Document 및 Metadata 저장
+
+> **Design Philosophy**
+> - **Source of Truth (PostgreSQL)**: 모든 데이터의 원본과 무결성을 보장하는 핵심 저장소입니다.
+> - **Search-Optimized Storage (Vector DB)**: 의미 기반 검색 성능 극대화를 위해 원본 데이터의 하위 집합을 벡터 인덱스로 관리합니다.
+> - **Separation of Concerns**: 무거운 AI 연산을 메인 요청 흐름(Critical Path)에서 분리하여 시스템 전체의 처리량(Throughput)을 높였습니다.
+
+#### Stored Metadata
+- `post_id`: 원본 게시글과의 매핑을 위한 식별자
+- `title`: 검색 결과의 가독성을 위한 제목 데이터
+- `content`: 답변 생성을 위한 컨텍스트 원문
+
+---
+
+### 4.3 Query Flow (지식 → 답변 생성)
+
+1. 사용자 질문 입력 (`POST /ai/query`)
+2. 질문 Embedding 생성
+3. Vector DB에서 Similarity Search 수행
+4. 관련 Document 추출
+5. Document → Context 변환
+6. LLM(Gemini)에 전달
+7. 답변 생성
+8. source(metadata)와 함께 반환
+
+---
+
+### 4.4 API Design
+
+#### `POST /ai/index-post/{post_id}`
+- 단건 게시글 인덱싱
+- Embedding → Vector DB 저장
 
 #### `POST /ai/query`
-- 사용자의 질문을 입력받습니다.
-- Vector DB에서 관련 게시글을 검색합니다.
-- 검색된 게시글을 context로 구성하여 LLM에 전달합니다.
-- 최종 답변과 출처 목록을 반환합니다.
+- 질의응답 API
+- Vector Search + LLM 응답
 
-#### `POST /documents/upload` *(Phase 2)*
-- 문서 업로드 API입니다.
-- 문서 텍스트 추출, chunking, embedding, Vector DB 저장 흐름으로 확장할 예정입니다.
+#### `POST /documents/upload` *(Future)*
+- 문서 업로드
+- Chunking + Embedding + 저장
 
 ---
 
-### 3.5 Component Responsibility
+### 4.5 Component Responsibilities
 
 - **AI Router (`api/v1/ai.py`)**
-  - AI 관련 요청 진입점
-  - 요청/응답 스키마 검증
-  - RAG Service 호출
+  - AI 요청 진입점
+  - 요청/응답 검증
 
 - **RAG Service (`services/rag_service.py`)**
-  - 질문 처리 흐름 총괄
-  - Retriever 호출
-  - LLM context 구성
-  - AI 답변 및 출처 응답 조립
+  - 전체 RAG 흐름 제어
+  - Retriever + LLM orchestration
 
 - **Embedding Service (`services/embedding_service.py`)**
-  - 게시글 또는 질문 텍스트를 임베딩 벡터로 변환
+  - 텍스트 → 벡터 변환
 
 - **Vector Repository (`repositories/vector_repository.py`)**
-  - Vector DB 저장
-  - Similarity Search 수행
-  - 검색 결과 metadata 반환
+  - Vector DB 저장 및 검색
 
 - **Post Repository (`repositories/post_repository.py`)**
-  - PostgreSQL에 저장된 게시글 원본 데이터 조회
+  - PostgreSQL 데이터 조회
 
 ---
 
-### 3.6 Vector DB Selection
+### 4.6 Vector DB Strategy
 
-MVP 단계에서는 로컬 개발과 빠른 검증이 쉬운 `Chroma`를 우선 고려합니다.
-
+#### Current (MVP)
 - **Chroma**
-  - 로컬 개발 및 MVP 검증에 적합
-  - LangChain 연동이 비교적 단순함
+  - 로컬 개발 및 빠른 검증에 적합
 
-향후 운영 환경 또는 공고 요구사항 대응을 위해 다음 Vector DB도 확장 후보로 고려합니다.
-
-- **Pinecone**
-  - 클라우드 기반 Vector DB
-  - 운영 환경 확장성에 강점
-
-- **LanceDB**
-  - 로컬/파일 기반 벡터 저장에 적합
-  - 경량 AI 검색 시스템에 활용 가능
+#### Future Options
+- **Pinecone**: 클라우드 기반 확장성
+- **LanceDB**: 경량 로컬 저장소
 
 ---
 
-## 4. 확장성을 고려한 설계 포인트
-- **Repository Pattern**: 현재는 PostgreSQL을 사용 중이나, 향후 Vector DB(Chroma 등)와의 하이브리드 운영을 위해 데이터 접근 계층을 추상화하였습니다.
-- **Dependency Injection**: FastAPI의 `Depends`를 활용하여 DB 세션 및 서비스 객체를 주입함으로써 테스트 용이성과 결합도를 낮췄습니다.
-- **Service Decoupling**: AI 질의응답 로직을 서비스 레이어 내 별도 컴포넌트로 분리하여, 일반 게시판 기능과 AI 기능이 서로 간섭 없이 확장될 수 있도록 설계했습니다.
+## 5. Design Considerations
+
+### 5.1 Repository Pattern
+- DB 접근 로직 분리
+- RDB / Vector DB 확장 용이
+
+### 5.2 Dependency Injection
+- FastAPI `Depends` 활용
+- 테스트 용이성 및 결합도 감소
+
+### 5.3 Service Decoupling
+- AI 로직과 일반 CRUD 로직 분리
+- 기능 간 영향 최소화
 
 ---
 
-## 5. 동기/비동기 확장 고려사항 (Sync/Async Scalability Consideration)
+## 6. Technical Considerations & Limitations
 
-- 현재 TraceBoard AI는 CRUD, Pagination, Search 중심의 MVP 구조로 비교적 짧은 DB I/O 작업을 수행합니다.
-- 따라서 현재 단계에서는 sync SQLAlchemy 구조가 단순성과 유지보수 측면에서 효율적입니다.
-- 단순 Router 계층의 async 전환만으로는 충분하지 않으며, 실제 async 구조 전환 시:
-  - Async SQLAlchemy Engine
-  - Async DB Driver
-  - Router / Service / Repository 전체 체인 전환
-이 필요합니다.
+### 6.1 DB Session Handling in Background Tasks
+- **세션 격리**: Background Task는 HTTP 요청의 생명주기(Request Scope) 밖에서 동작하므로 기존 요청의 DB 세션을 공유할 수 없습니다.
+- **안정성 확보**: 데이터 일관성과 세션 오염 방지를 위해, 인덱싱 작업 시 **별도의 전용 DB 세션을 생성**하여 처리하도록 설계했습니다. 이를 통해 백그라운드 작업 중 발생할 수 있는 세션 충돌 문제를 근본적으로 차단했습니다.
 
-### 우선 고려 성능 요소
-- 전체 데이터 조회 비용
-- COUNT 비용
-- OFFSET 증가
-- LIKE / ILIKE 검색 비용
-- Query 최적화 및 Index 설계
+### 6.2 Background Task 한계 및 개선 방향
+- **작업 유실 가능성**: 현재의 프로세스 기반 비동기 방식은 서버 비정상 종료 시 대기 중인 인덱싱 작업이 유실될 수 있는 위험이 있습니다.
+- **확장성 제약**: 단일 서버 인스턴스 내에서만 유효하며, 실패 시 재시도(Retry) 메커니즘이 부족합니다.
+- **개선 로드맵**: 향후 **Redis 기반의 Message Queue(Celery)** 시스템으로 전환하여 작업을 영속화하고, 멀티 인스턴스 환경에서도 안정적인 분산 처리가 가능하도록 확장할 예정입니다.
 
-### 향후 async 전환 고려 시점
-- 외부 LLM API 호출 증가
-- 문서 업로드 및 대용량 처리
-- Vector DB 기반 검색
-- 동시 사용자 증가
+### 6.3 LLM Selection (Gemini)
+- **선택 이유**: 인프라 구축에 드는 리소스를 최소화하고 RAG 로직 구현과 검증에 집중하기 위해, API 연동이 간편하고 생산성이 높은 Gemini를 선택했습니다.
+
+---
+
+## 7. Performance Optimization Roadmap
+
+현재의 MVP 모델을 넘어, 대규모 데이터와 높은 트래픽을 견디기 위한 단계적 최적화 계획을 수립하고 있습니다.
+
+- **전면 비동기 전환**: 현재 동기(Sync)로 작동하는 일부 CRUD API를 비동기로 전면 전환하여 서버 동시 처리량을 개선할 예정입니다.
+- **커서 기반 페이지네이션**: 대용량 데이터 조회 시 성능 저하를 일으키는 OFFSET 방식의 한계를 인지하고 있으며, 이를 Cursor-based 방식으로 개선할 계획입니다.
+- **쿼리 및 검색 최적화**: 전수 COUNT 쿼리 및 LIKE 검색 비용을 절감하기 위해 캐싱 전략(Redis) 및 인덱싱 최적화를 검토 중입니다.
+- **벡터 검색 고도화**: 검색 정확도와 속도를 높이기 위한 하이브리드 검색(Keyword + Semantic) 및 메타데이터 필터링 고도화를 목표로 합니다.

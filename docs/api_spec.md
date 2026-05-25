@@ -14,14 +14,17 @@
 - 새 게시글 생성
 
 ### Request Body
-​
+
+```json
 {
 "title": "게시글 제목",
 "content": "게시글 내용"
 }
+```
 
 ### Response
 ​
+```json
 {
 "id": 1,
 "title": "게시글 제목",
@@ -29,6 +32,7 @@
 "author_id": 1,
 "created_at": "2026-05-15T12:00:00"
 }
+```
 
 ### Status Codes
 - `201 Created`
@@ -57,6 +61,7 @@
 
 ### Response
 
+```json
 {
 "total_count": 11,
 "total_pages": 4,
@@ -79,6 +84,7 @@
 }
 ]
 }
+```
 
 ### Status Codes
 - `200 OK`
@@ -112,6 +118,7 @@
 
 ### Response
 
+```json
 [
 {
 "id": 1,
@@ -121,11 +128,14 @@
 "created_at": "2026-05-15T12:00:00"
 }
 ]
+```
 
 ### Empty Response
 
+```json
 [
 ]
+```
 
 ### Status Codes
 - `200 OK`
@@ -152,6 +162,7 @@ post_id: int
 
 ### Response
 ​
+```json
 {
 "id": 1,
 "title": "게시글 제목",
@@ -159,6 +170,7 @@ post_id: int
 "author_id": 1,
 "created_at": "2026-05-15T12:00:00"
 }
+```
 
 ### Status Codes
 - `200 OK`
@@ -175,13 +187,16 @@ post_id: int
 
 ### Request Body
 ​
+```json
 {
 "title": "수정된 제목",
 "content": "수정된 내용"
 }
+```
 
 ### Response
 ​
+```json
 {
 "id": 1,
 "title": "수정된 제목",
@@ -189,6 +204,7 @@ post_id: int
 "author_id": 1,
 "created_at": "2026-05-15T12:00:00"
 }
+```
 
 ### Status Codes
 - `200 OK`
@@ -206,9 +222,11 @@ post_id: int
 
 ### Response
 ​
+```json
 {
 "message": "게시글이 삭제되었습니다."
 }
+```
 
 ### Status Codes
 - `200 OK`
@@ -220,20 +238,25 @@ post_id: int
 
 ### PostCreate
 ​
+```json
 {
 "title": "string | null (max 30)",
 "content": "string (1~300)"
 }
+```
 
 ### PostUpdate
 ​
+```json
 {
 "title": "string | null (max 30)",
 "content": "string (1~300)"
 }
+```
 
 ### PostRead
-​
+
+```json
 {
 "id": "int",
 "title": "string | null",
@@ -241,30 +264,36 @@ post_id: int
 "author_id": "int",
 "created_at": "datetime"
 }
+```
 
 ---
 
 ## 공통 아키텍처 흐름
 
-​
-Client Request
-→ FastAPI Router
-→ Pydantic Validation
-→ Service Layer
-→ Repository Layer
-→ PostgreSQL (Supabase)
-→ Response
+```text
+​Client Request
+   ↓
+FastAPI Router (Pydantic Validation)
+   ↓
+Service Layer (Business Logic / RAG)
+   ↓
+Repository Layer (DB Abstraction)
+   ↓
+PostgreSQL (Supabase) / Chroma DB (Vector)
+   ↓
+Response
+```
 
 ---
 
 ## 향후 확장 예정 API
 
-- `GET /posts/search`
-- `GET /posts?page=`
-- `POST /documents/upload`
-- `POST /ai/query`
-- `GET /ai/history`
-
+- [Implemented]`GET /posts/search`
+- [Implemented]`GET /posts?page=`
+- [Implemented]`POST /ai/query`
+- [Planned]`POST /documents/upload`
+- [Planned]`GET /ai/history`
+- [Planned]`DELETE /ai/index/{post_id}`
 ---
 
 ## 7. RAG 인덱싱 (Index Post)
@@ -272,20 +301,24 @@ Client Request
 **POST** `/ai/index-post/{post_id}`
 
 ### 설명
-- 특정 게시글을 Vector DB에 저장 (임베딩 생성)
+- **데이터 통합**: PostgreSQL에 저장된 특정 게시글(ID 기반)을 조회하여 임베딩한 후 Vector DB(Chroma)에 동기화합니다.
+- **자동화 설계**: 게시글 생성(`POST /posts`) 시 서버 내부에서 Background Task를 통해 이 로직이 자동으로 호출됩니다.
+- **수동 활용**: 데이터 정합성 보정이 필요하거나, 특정 게시글을 강제로 재인덱싱할 때 사용합니다.
 
 ### Path Parameter
-- post_id: int
+- `post_id`: (int) PostgreSQL에 저장된 게시글 고유 ID
 
 ### Response
-
+```json
 {
-  "message": "Post indexed successfully"
+  "indexed_count": 1,
+  "message": "게시글 인덱싱이 완료되었습니다."
 }
+```
 
 ### Status Codes
-- 200 OK
-- 404 Not Found
+- `200 OK`
+- `404 Not Found`
 
 ---
 
@@ -294,16 +327,18 @@ Client Request
 **POST** `/ai/query`
 
 ### 설명
-- 사용자 질문을 기반으로 유사 문서를 검색하고 LLM을 통해 답변 생성
+- **RAG(Retrieval-Augmented Generation)** 메커니즘을 기반으로 사용자의 질문에 답변을 생성합니다.
+- 사용자의 질문과 의미적으로 유사한 게시글을 Vector DB에서 검색하고, 추출된 정보를 바탕으로 LLM(Gemini)이 근거 있는 답변을 도출합니다.
 
 ### Request Body
-
+```json
 {
-  "query": "질문 내용"
+  "query": "사용자 질문 내용 (예: 'FastAPI 비동기 처리 방법 알려줘')"
 }
+```
 
 ### Response
-
+```json
 {
   "answer": "AI가 생성한 답변",
   "sources": [
@@ -313,7 +348,8 @@ Client Request
     }
   ]
 }
+```
 
 ### Status Codes
-- 200 OK
-- 422 Validation Error
+- `200 OK`
+- `422 Validation Error`
