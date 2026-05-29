@@ -6,7 +6,7 @@
 
 ---
 
-## 🚀 Project Overview
+## Project Overview
 TraceBoard AI는 단순 CRUD 게시판을 넘어 **저장된 데이터를 “검색 가능한 지식”으로 변환하는 시스템**입니다.  
 사용자가 작성한 게시글은 단순히 저장되는 것이 아니라
 
@@ -15,7 +15,7 @@ TraceBoard AI는 단순 CRUD 게시판을 넘어 **저장된 데이터를 “검
 
 ---
 
-## 🔥 Key Features
+## Key Features
 - 게시글 CRUD API (FastAPI + PostgreSQL)
 - 게시글 기반 RAG 인덱싱
 - Vector DB(Chroma) 기반 유사도 검색
@@ -24,31 +24,31 @@ TraceBoard AI는 단순 CRUD 게시판을 넘어 **저장된 데이터를 “검
 
 ---
 
-## 🧠 How It Works (핵심 흐름)
+## How It Works (핵심 흐름)
 
-### 1️⃣ Indexing Flow (데이터 → 지식화)
+### Indexing Flow (데이터 → 지식화)
 1. 게시글 생성
 2. PostgreSQL 저장
 3. Embedding 생성
 4. Vector DB(Chroma)에 저장
 5. metadata(post_id, title, content) 함께 저장
 
-👉 **단순 데이터 → 검색 가능한 지식으로 변환**
+**단순 데이터 → 검색 가능한 지식으로 변환**
 
 ---
 
-### 2️⃣ Query Flow (지식 → 답변 생성)
+### Query Flow (지식 → 답변 생성)
 1. 사용자 질문 입력
 2. Vector DB에서 유사 문서 검색
 3. 검색 결과 → context 구성
 4. LLM(Gemini)에 전달
 5. 답변 + 출처(source) 반환
 
-👉 **저장된 데이터를 기반으로 신뢰 가능한 답변 생성**
+**저장된 데이터를 기반으로 신뢰 가능한 답변 생성**
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 본 프로젝트는 **Layered Architecture** 기반으로 설계되었습니다.
 
 ```mermaid
@@ -64,11 +64,11 @@ graph LR
 - **Service**: 비즈니스 로직 및 RAG 처리
 - **Repository**: DB 및 Vector DB 접근
 
-> 👉 자세한 구조는 `docs/architecture.md` 참고
+> 자세한 구조는 `docs/architecture.md` 참고
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - FastAPI
@@ -85,7 +85,7 @@ graph LR
 
 ---
 
-## 📂 Folder Structure
+## Folder Structure
 ​
 ```text
 backend/app/
@@ -100,33 +100,33 @@ backend/app/
 
 ---
 
-## 📌 API
+## API
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/ai/index-post/{post_id}` | 특정 게시글 인덱싱 (게시글 생성 시 자동 트리거) |
 | `POST` | `/ai/query` | 저장된 지식 기반 AI 질의응답(RAG) 수행 |
 
 > **Note**: `/ai/index-post` API는 게시글 생성 API 호출 시 백그라운드 태스크를 통해 자동으로 트리거되도록 설계되었습니다.
-> 👉 전체 엔드포인트와 데이터 스키마는 `docs/api_spec.md` 참고.
+> 전체 엔드포인트와 데이터 스키마는 `docs/api_spec.md` 참고.
 
 ---
 
-## 📈 Development Status
+## Development Status
 
-### ✅ Current (MVP)
+### Current (MVP)
 - **Layered Architecture**: "변하는 것과 변하지 않는 것"의 분리를 통한 유연한 설계
 - **Event-driven 자동 인덱싱**: 게시글 생성 시 `FastAPI BackgroundTasks`를 활용한 비동기 인덱싱 트리거
 - **Critical Path Async**: 응답 속도 최적화를 위해 핵심 파이프라인(생성/인덱싱) 우선 비동기화
 - **Database**: PostgreSQL(Supabase) 및 Chroma DB(빠른 실험을 위한 로컬 벡터 저장소) 활용
 
-### 🚧 Future
+### Future
 - 검색 고도화 (필터링, 정렬)
 - Vector DB 확장 (Pinecone 등)
 - Local LLM 연동
 
 ---
 
-## 💡 Key Design Decisions
+## Key Design Decisions
 
 ### 1. RAG 구조 선택
 - 단순 LLM 응답이 아닌 **데이터 기반 응답**을 위해 RAG 채택
@@ -140,7 +140,7 @@ backend/app/
 
 ---
 
-## 🧪 Technical Notes & Trade-offs
+## Technical Notes & Trade-offs
 
 ### 1. 비동기 처리와 BackgroundTasks
 - **Latency 최적화**: 무거운 Embedding 작업을 백그라운드로 분리하여 사용자 응답 속도를 극대화했습니다.
