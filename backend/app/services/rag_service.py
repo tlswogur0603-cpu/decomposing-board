@@ -22,7 +22,7 @@ async def index_single_post_service(db: AsyncSession, post_id: int) -> PostIndex
     await save_post_to_vector_store(
         post_id=post.id,
         title=post.title,
-        content=post.content,
+        content=post.content,   
     )
 
     return PostIndexResponse(
@@ -31,8 +31,8 @@ async def index_single_post_service(db: AsyncSession, post_id: int) -> PostIndex
     )
 
 
-def answer_question_service(question: str) -> AIQueryResponse:
-    related_documents = search_similar_posts(question=question, top_k=3)
+async def answer_question_service(question: str) -> AIQueryResponse:
+    related_documents = await search_similar_posts(question=question, top_k=3)
 
     if not related_documents:
         return AIQueryResponse(
@@ -45,7 +45,7 @@ def answer_question_service(question: str) -> AIQueryResponse:
         for idx, document in enumerate(related_documents, start=1)
     )
 
-    answer = generate_answer(context=context, question=question)
+    answer = await generate_answer(context=context, question=question)
 
     sources = [
         SourcePost(
@@ -59,4 +59,4 @@ def answer_question_service(question: str) -> AIQueryResponse:
     return AIQueryResponse(
         answer=answer,
         sources=sources,
-    )
+    ) 
