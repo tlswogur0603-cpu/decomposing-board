@@ -1,107 +1,95 @@
-# 게시글 DB 저장을 담당하는 파일
-# PostCreate 요청 데이터를 Post ORM 객체로 변환한다.
-# db 세션을 사용해 posts 테이블에 저장한다.
-# 저장 후 DB에서 생성된 id, created_at 값을 반영한 Post 객체를 반환한다.
-
-from sqlalchemy import or_
-from sqlalchemy.orm import Session
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.models.post import Post
-from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
 
-# 게시글 생성: 요청 데이터를 Post ORM 객체로 변환해 DB에 저장
+from app.models.post import Post
+from app.schemas.post import PostCreate, PostUpdate
+
+
 async def create_post(
-        db: AsyncSession,
-        post: PostCreate,
-        author_id: int,
+    db: AsyncSession,
+    post: PostCreate,
+    author_id: int,
 ) -> Post:
     new_post = Post(
         title=post.title,
         content=post.content,
         author_id=author_id,
     )
-
     db.add(new_post)
-
     return new_post
 
-# 게시글 목록 조회(페이지네이션 적용): created_at 기준 내림차순 정렬 후 limit/offset 적용
-def fetch_posts_list(db: Session, limit: int, offset: int) -> list[Post]:
-    return (
-        db.query(Post)
+
+async def fetch_posts_list(
+    db: AsyncSession,
+    limit: int,
+    offset: int,
+) -> list[Post]:
+    result = await db.execute(
+        select(Post)
         .order_by(Post.created_at.desc())
         .offset(offset)
         .limit(limit)
-        .all()
     )
+    return list(result.scalars().all())
 
-# 게시글 검색: title/content에 query가 포함된 게시글을 조회
-def search_posts_repository(db: Session, q: str) -> list[Post]:
+
+async def search_posts_repository(db: AsyncSession, q: str) -> list[Post]:
     trimmed_q = q.strip()
     if not trimmed_q:
         return []
 
     search_pattern = f"%{trimmed_q}%"
-
-    return (
-        db.query(Post)
-        .filter(
+    result = await db.execute(
+        select(Post)
+        .where(
             or_(
                 Post.title.ilike(search_pattern),
                 Post.content.ilike(search_pattern),
             )
         )
         .order_by(Post.created_at.desc())
-        .all()
     )
+    return list(result.scalars().all())
 
-# 게시글 전체 개수 조회
-def get_posts_count(db: Session) -> int:
-    return db.query(Post).count()
 
-# 게시글 단일 조회: post_id와 일치하는 게시글 하나를 조회
+async def get_posts_count(db: AsyncSession) -> int:
+    result = await db.execute(select(func.count()).select_from(Post))
+    return int(result.scalar_one())
+
+
 async def get_post_by_id(
-        db: AsyncSession, 
-        post_id: int,
+    db: AsyncSession,
+    post_id: int,
 ) -> Post | None:
-    
-    result = await db.execute(
-        select(Post).where(Post.id==post_id)
-    )
-
+    result = await db.execute(select(Post).where(Post.id == post_id))
     return result.scalar_one_or_none()
 
-# 게시글 수정: post_id로 게시글을 찾고 title/content를 수정
-def update_post(
-        db: Session,
-        post_id: int,
-        post_update: PostUpdate,
+
+async def update_post(
+    db: AsyncSession,
+    post_id: int,
+    post_update: PostUpdate,
 ) -> Post | None:
-    post = db.query(Post).filter(Post.id == post_id).first()
+    result = await db.execute(select(Post).where(Post.id == post_id))
+    post = result.scalar_one_or_none()
 
     if post is None:
         return None
-    
+
     post.title = post_update.title
     post.content = post_update.content
-
-    db.commit()
-    db.refresh(post)
-
     return post
 
-# 게시글 삭제: post_id로 게시글을 찾고 삭제
-def delete_post(
-        db: Session,
-        post_id: int,
+
+async def delete_post(
+    db: AsyncSession,
+    post_id: int,
 ) -> Post | None:
-    post = db.query(Post).filter(Post.id == post_id).first()
+    result = await db.execute(select(Post).where(Post.id == post_id))
+    post = result.scalar_one_or_none()
 
     if post is None:
         return None
-    
-    db.delete(post)
-    db.commit()
 
+    await db.delete(post)
     return post
