@@ -1,51 +1,52 @@
-# 게시글 생성 비즈니스 로직을 담당.
-# 현재 로그인 기능이 없어 author_id는 임시로 1로 지정.
-# 실제 DB 저장은 post_repository에 위임.
-
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import BackgroundTasks
 import math
 
-from app.schemas.post import PostCreate, PostUpdate, PostPaginationResponse
+from fastapi import BackgroundTasks, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.post import Post
+from app.repositories.post_repository import (
+    create_post,
+    delete_post,
+    fetch_posts_list,
+    get_post_by_id,
+    get_posts_count,
+    search_posts_repository,
+    update_post,
+)
+from app.schemas.post import PostCreate, PostPaginationResponse, PostUpdate
 from app.services.indexing_service import run_indexing
-from app.repositories.post_repository import create_post, fetch_posts_list, get_posts_count, get_post_by_id, update_post, delete_post, search_posts_repository
 
-# 게시글 생성 및 자동 인덱싱
+
 async def create_post_service(
-        db: AsyncSession,
-        post: PostCreate,
-        background_tasks: BackgroundTasks,
+    db: AsyncSession,
+    post: PostCreate,
+    background_tasks: BackgroundTasks,
 ) -> Post:
-    author_id = 1 # TODO: 로그인 기능 구현 후 current_user.id로 교체
+    author_id = 1
 
-    # 게시글 생성 
     new_post = await create_post(
         db=db,
         post=post,
         author_id=author_id,
     )
 
-    # 트랜잭션 확정
     await db.commit()
     await db.refresh(new_post)
-    # 인덱싱 작업 등록
     background_tasks.add_task(run_indexing, new_post.id)
 
     return new_post
 
-def get_posts_service(
-        db: Session,
-        limit: int,
-        page: int,
-) -> PostPaginationResponse:
-    offset = (page - 1) * limit 
 
-    items = fetch_posts_list(db=db, limit=limit, offset=offset)
-    total_count = get_posts_count(db=db)
-    total_pages = math.ceil(total_count / limit ) if total_count > 0 else 0
+async def get_posts_service(
+    db: AsyncSession,
+    limit: int,
+    page: int,
+) -> PostPaginationResponse:
+    offset = (page - 1) * limit
+
+    items = await fetch_posts_list(db=db, limit=limit, offset=offset)
+    total_count = await get_posts_count(db=db)
+    total_pages = math.ceil(total_count / limit) if total_count > 0 else 0
 
     return PostPaginationResponse(
         total_count=total_count,
@@ -55,48 +56,55 @@ def get_posts_service(
         items=items,
     )
 
-def search_posts_service(db: Session, q: str) -> list[Post]:
-    return search_posts_repository(db=db, q=q)
 
-def get_post_detail_service(
-        db: Session,
-        post_id: int,
+async def search_posts_service(db: AsyncSession, q: str) -> list[Post]:
+    return await search_posts_repository(db=db, q=q)
+
+
+async def get_post_detail_service(
+    db: AsyncSession,
+    post_id: int,
 ) -> Post:
-    post = get_post_by_id(db=db, post_id=post_id)
+    post = await get_post_by_id(db=db, post_id=post_id)
 
     if post is None:
         raise HTTPException(
             status_code=404,
             detail="게시글을 찾을 수 없습니다.",
         )
-    
+
     return post
 
-def update_post_service(
-        db: Session,
-        post_id: int,
-        post_update: PostUpdate,
+
+async def update_post_service(
+    db: AsyncSession,
+    post_id: int,
+    post_update: PostUpdate,
 ) -> Post:
-    updated_post = update_post(db=db, post_id=post_id, post_update=post_update)
+    updated_post = await update_post(db=db, post_id=post_id, post_update=post_update)
 
     if updated_post is None:
         raise HTTPException(
             status_code=404,
             detail="게시글을 찾을 수 없습니다.",
-        ) 
-    
+        )
+
+    await db.commit()
+    await db.refresh(updated_post)
     return updated_post
 
-def delete_post_service(
-        db: Session,
-        post_id: int,
+
+async def delete_post_service(
+    db: AsyncSession,
+    post_id: int,
 ) -> Post:
-    deleted_post = delete_post(db=db, post_id=post_id)
+    deleted_post = await delete_post(db=db, post_id=post_id)
 
     if deleted_post is None:
         raise HTTPException(
             status_code=404,
-            detail="게시글을 찾을 수 없습니다."
+            detail="게시글을 찾을 수 없습니다.",
         )
-    
+
+    await db.commit()
     return deleted_post
