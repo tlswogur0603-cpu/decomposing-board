@@ -1,4 +1,4 @@
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.post import Post
@@ -38,16 +38,14 @@ async def search_posts_repository(db: AsyncSession, q: str) -> list[Post]:
     if not trimmed_q:
         return []
 
-    search_pattern = f"%{trimmed_q}%"
+    search_query = func.websearch_to_tsquery("simple", trimmed_q)
     result = await db.execute(
         select(Post)
-        .where(
-            or_(
-                Post.title.ilike(search_pattern),
-                Post.content.ilike(search_pattern),
-            )
+        .where(Post.search_vector.op("@@")(search_query))
+        .order_by(
+            func.ts_rank_cd(Post.search_vector, search_query).desc(),
+            Post.created_at.desc(),
         )
-        .order_by(Post.created_at.desc())
     )
     return list(result.scalars().all())
 
