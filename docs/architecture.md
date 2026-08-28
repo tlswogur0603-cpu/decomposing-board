@@ -70,13 +70,14 @@ TraceBoard AI는 단순 LLM 호출이 아닌
 
 #### MVP
 - 게시글 (`posts`) 기반
-- `title + content` → 하나의 document
-- 별도 chunking 없이 저장
+- `title + content` 기반 청크 생성
+- LangChain `RecursiveCharacterTextSplitter` 기반 recursive chunking + overlap 적용
+- 청크 단위 embedding 및 검색
 
 #### Future
 - PDF / Markdown / Text 업로드
 - Text Extraction + Chunking
-- Chunk 단위 embedding 및 검색
+- 임베딩 모델 파인튜닝 전후 성능 비교
 
 ---
 
@@ -84,12 +85,14 @@ TraceBoard AI는 단순 LLM 호출이 아닌
 
 본 프로젝트는 사용자 경험을 저해하지 않으면서 데이터를 지식화하기 위해 **Event-driven 방식의 비동기 인덱싱** 구조를 채택했습니다.
 
-1. **게시글 생성 요청**: Client → API
+1. **게시글 생성/수정/삭제 요청**: Client → API
 2. **DB 저장 (Primary)**: PostgreSQL에 게시글 데이터를 즉시 저장 (`await` 처리)
 3. **응답 반환**: 사용자에게 즉시 성공 응답을 반환하여 **Latency 최소화**
 4. **Event-driven 자동 트리거**: 저장 성공 직후 `FastAPI BackgroundTasks`를 통해 비동기 인덱싱 로직 실행
+    - **Chunking**: 게시글 본문을 recursive chunking + overlap 방식으로 분할
     - **Embedding 생성**: 텍스트 데이터를 벡터화 수행
-    - **Vector DB 동기화**: Chroma DB에 Document 및 Metadata 저장
+    - **Vector DB 동기화**: Chroma DB에 청크 Document 및 Metadata 저장
+    - **삭제 동기화**: 게시글 삭제 시 해당 `post_id`의 기존 청크 벡터 삭제
 
 > **Design Philosophy**
 > - **Source of Truth (PostgreSQL)**: 모든 데이터의 원본과 무결성을 보장하는 핵심 저장소입니다.
@@ -98,8 +101,11 @@ TraceBoard AI는 단순 LLM 호출이 아닌
 
 #### Stored Metadata
 - `post_id`: 원본 게시글과의 매핑을 위한 식별자
+- `chunk_index`: 게시글 내 청크 순서를 나타내는 0-based 인덱스
+- `chunk_count`: 해당 게시글의 전체 청크 수
 - `title`: 검색 결과의 가독성을 위한 제목 데이터
-- `content`: 답변 생성을 위한 컨텍스트 원문
+- `content`: 답변 생성을 위한 청크 원문
+- `chunk_size`, `chunk_overlap`: 청킹 설정 추적용 값
 
 ---
 
@@ -120,7 +126,7 @@ TraceBoard AI는 단순 LLM 호출이 아닌
 
 #### `POST /ai/index-post/{post_id}`
 - 단건 게시글 인덱싱
-- Embedding → Vector DB 저장
+- Recursive Chunking → Embedding → Vector DB 저장
 
 #### `POST /ai/query`
 - 질의응답 API
