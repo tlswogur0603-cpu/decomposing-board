@@ -43,17 +43,25 @@ def main() -> None:
     metadatas = result.get("metadatas") or []
 
     rows: list[dict[str, Any]] = []
+    chunk_count_by_post_id: dict[Any, int] = {}
     for index, chunk_id in enumerate(ids):
         metadata = _safe_get(metadatas, index, {}) or {}
         document = _safe_get(documents, index, "") or ""
         raw_content = metadata.get("content") or document
+        chunk_length = len(str(raw_content))
+        post_id = metadata.get("post_id")
+
+        if post_id is not None:
+            chunk_count_by_post_id[post_id] = chunk_count_by_post_id.get(post_id, 0) + 1
 
         rows.append(
             {
-                "post_id": metadata.get("post_id"),
+                "post_id": post_id,
                 "chunk_index": metadata.get("chunk_index"),
                 "preview": _preview_text(str(raw_content)),
                 "chunk_id": chunk_id,
+                "length": chunk_length,
+                "warning": " ⚠️" if chunk_length > 1000 else "",
             }
         )
 
@@ -75,8 +83,12 @@ def main() -> None:
     for row in rows:
         print(
             f"- post_id={row['post_id']}, chunk_index={row['chunk_index']}, "
-            f"preview={row['preview']}"
+            f"length={row['length']}{row['warning']}, preview={row['preview']}"
         )
+
+    print("\npost_id별 청크 개수 요약")
+    for post_id in sorted(chunk_count_by_post_id):
+        print(f"- post_id={post_id}: {chunk_count_by_post_id[post_id]}개")
 
 
 if __name__ == "__main__":
