@@ -241,7 +241,7 @@ post_id: int
 ```json
 {
 "title": "string | null (max 30)",
-"content": "string (1~300)"
+"content": "string (1~10000)"
 }
 ```
 
@@ -250,7 +250,7 @@ post_id: int
 ```json
 {
 "title": "string | null (max 30)",
-"content": "string (1~300)"
+"content": "string (1~10000)"
 }
 ```
 
@@ -300,7 +300,9 @@ graph TD
 
 ### 설명
 - **데이터 통합**: PostgreSQL에 저장된 특정 게시글(ID 기반)을 조회하여 임베딩한 후 Vector DB(Chroma)에 동기화합니다.
-- **자동화 설계**: 게시글 생성(`POST /posts`) 시 서버 내부에서 Background Task를 통해 이 로직이 자동으로 호출됩니다.
+- **청킹 전략**: LangChain `RecursiveCharacterTextSplitter`로 recursive chunking + overlap을 적용합니다.
+- **자동화 설계**: 게시글 생성/수정(`POST /posts`, `PUT /posts/{post_id}`) 시 서버 내부에서 Background Task를 통해 이 로직이 자동으로 호출됩니다.
+- **삭제 동기화**: 게시글 삭제(`DELETE /posts/{post_id}`) 시 해당 게시글의 모든 청크 벡터가 삭제됩니다.
 - **수동 활용**: 데이터 정합성 보정이 필요하거나, 특정 게시글을 강제로 재인덱싱할 때 사용합니다.
 
 ### Path Parameter
@@ -309,10 +311,12 @@ graph TD
 ### Response
 ```json
 {
-  "indexed_count": 1,
+  "indexed_count": 3,
   "message": "게시글 인덱싱이 완료되었습니다."
 }
 ```
+
+`indexed_count`는 인덱싱된 청크 수를 의미합니다.
 
 ### Status Codes
 - `200 OK`
@@ -342,7 +346,9 @@ graph TD
   "sources": [
     {
       "post_id": 1,
-      "title": "관련 문서 제목"
+      "title": "관련 문서 제목",
+      "chunk_index": 0,
+      "chunk_count": 3
     }
   ]
 }

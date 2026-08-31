@@ -50,7 +50,7 @@ graph LR
 | Router | HTTP 요청 / 응답 처리 |
 | Service | 비즈니스 로직 및 RAG 흐름 제어 |
 | Repository | PostgreSQL / Vector DB 접근 |
-| BackgroundTasks | 게시글 저장 후 비동기 인덱싱 |
+| BackgroundTasks | 게시글 생성/수정/삭제 후 비동기 인덱스 동기화 |
 
 자세한 구조는 `docs/architecture.md` 참고
 
@@ -59,7 +59,8 @@ graph LR
 ## Key Features
 
 - 게시글 CRUD API
-- 게시글 생성 후 자동 임베딩 및 벡터 저장
+- 게시글 생성/수정/삭제 후 자동 청크 인덱스 동기화
+- Recursive chunking + overlap 기반 청크 단위 임베딩 및 벡터 저장
 - RAG 기반 AI 질의응답
 - 답변 근거 Source 추적(metadata 반환)
 - PostgreSQL Full Text Search 기반 검색
@@ -81,7 +82,7 @@ graph LR
 ### Indexing Flow
 
 ```text
-Create Post
+Create/Update Post
       │
       ▼
 PostgreSQL 저장
@@ -90,10 +91,13 @@ PostgreSQL 저장
 BackgroundTasks 실행
       │
       ▼
+Recursive Chunking + Overlap
+      │
+      ▼
 Text Embedding
       │
       ▼
-Chroma Vector DB 저장
+Chroma Vector DB 청크 저장
 ```
 
 ### Query Flow
@@ -164,7 +168,7 @@ backend/app/
 | POST | `/ai/index-post/{post_id}` | 게시글 수동 인덱싱 |
 | POST | `/ai/query` | RAG 질의응답 |
 
-> 게시글 생성 시 `/ai/index-post`는 BackgroundTasks를 통해 자동 실행됩니다.
+> 게시글 생성/수정 시 청크 인덱싱이, 삭제 시 청크 인덱스 삭제가 BackgroundTasks를 통해 자동 실행됩니다.
 
 자세한 API 명세는 `docs/api_spec.md` 참고
 
@@ -229,5 +233,5 @@ PostgreSQL Full Text Search(GIN Index 기반)를 적용해
 - [ ] 사용자별 게시글 조회
 - [ ] Celery + Redis Worker
 - [ ] 문서 업로드 기능
-- [ ] Chunking 기반 RAG 개선
+- [x] Chunking 기반 RAG 개선
 - [ ] Retrieval Quality 평가

@@ -4,9 +4,11 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
+from app.core.constants import POST_CONTENT_MAX_LENGTH
+
 class PostCreate(BaseModel):
     title: str | None = Field(None, max_length=30)
-    content: str = Field(..., min_length=1, max_length=300)
+    content: str = Field(..., min_length=1, max_length=POST_CONTENT_MAX_LENGTH)
 
 class PostRead(BaseModel):
     id: int
@@ -19,7 +21,7 @@ class PostRead(BaseModel):
 
 class PostUpdate(BaseModel):
     title: str | None = Field(None, max_length=30)
-    content: str = Field(..., min_length=1, max_length=300)
+    content: str = Field(..., min_length=1, max_length=POST_CONTENT_MAX_LENGTH)
 
 class PostPaginationResponse(BaseModel):
     total_count: int      # 전체 게시글 수

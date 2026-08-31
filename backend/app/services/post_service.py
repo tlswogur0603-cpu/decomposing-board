@@ -14,7 +14,7 @@ from app.repositories.post_repository import (
     update_post,
 )
 from app.schemas.post import PostCreate, PostPaginationResponse, PostUpdate
-from app.services.indexing_service import run_indexing
+from app.tasks.indexing_task import delete_post_index, run_indexing
 
 
 async def create_post_service(
@@ -80,6 +80,7 @@ async def update_post_service(
     db: AsyncSession,
     post_id: int,
     post_update: PostUpdate,
+    background_tasks: BackgroundTasks,
 ) -> Post:
     updated_post = await update_post(db=db, post_id=post_id, post_update=post_update)
 
@@ -91,12 +92,15 @@ async def update_post_service(
 
     await db.commit()
     await db.refresh(updated_post)
+    background_tasks.add_task(run_indexing, updated_post.id)
+
     return updated_post
 
 
 async def delete_post_service(
     db: AsyncSession,
     post_id: int,
+    background_tasks: BackgroundTasks,
 ) -> Post:
     deleted_post = await delete_post(db=db, post_id=post_id)
 
@@ -107,4 +111,6 @@ async def delete_post_service(
         )
 
     await db.commit()
+    background_tasks.add_task(delete_post_index, post_id)
+
     return deleted_post

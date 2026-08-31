@@ -53,14 +53,25 @@ async def get_post(
 async def update_post(
     post_id: int,
     post_update: PostUpdate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> PostRead:
-    return await update_post_service(db=db, post_id=post_id, post_update=post_update)
+    return await update_post_service(
+        db=db,
+        post_id=post_id,
+        post_update=post_update,
+        background_tasks=background_tasks,
+    )
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_200_OK)
 async def delete_post(
     post_id: int,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> None:
-    await delete_post_service(db=db, post_id=post_id)
+    await delete_post_service(
+        db=db,
+        post_id=post_id,
+        background_tasks=background_tasks,
+    )
