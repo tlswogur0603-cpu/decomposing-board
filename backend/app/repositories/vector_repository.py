@@ -3,19 +3,21 @@ import asyncio
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 
-from app.core.constants import POST_CHUNK_OVERLAP, POST_CHUNK_SIZE
+from app.core.constants import (
+    CHROMA_COLLECTION_NAME,
+    CHROMA_PERSIST_DIRECTORY,
+    POST_CHUNK_OVERLAP,
+    POST_CHUNK_SIZE,
+)
 from app.rag.embedding import get_embedding_model
 from app.rag.chunking import split_post_content
-
-COLLECTION_NAME = "traceboard_posts"
-PERSIST_DIRECTORY = "./chroma_db"
 
 
 def get_vector_store() -> Chroma:
     embedding_model = get_embedding_model()
     return Chroma(
-        collection_name=COLLECTION_NAME,
-        persist_directory=PERSIST_DIRECTORY,
+        collection_name=CHROMA_COLLECTION_NAME,
+        persist_directory=str(CHROMA_PERSIST_DIRECTORY),
         embedding_function=embedding_model,
     )
 

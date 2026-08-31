@@ -1,20 +1,16 @@
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any
 
 from langchain_chroma import Chroma
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-COLLECTION_NAME = "traceboard_posts"
-
-
-def _project_root() -> Path:
-    return Path(__file__).resolve().parents[1]
-
-
-def _persist_directory() -> str:
-    return str(_project_root() / "chroma_db")
+from backend.app.core.constants import CHROMA_COLLECTION_NAME, CHROMA_PERSIST_DIRECTORY
 
 
 def _preview_text(text: str, limit: int = 80) -> str:
@@ -32,8 +28,8 @@ def _safe_get(items: list[Any], index: int, default: Any = None) -> Any:
 
 def main() -> None:
     vector_store = Chroma(
-        collection_name=COLLECTION_NAME,
-        persist_directory=_persist_directory(),
+        collection_name=CHROMA_COLLECTION_NAME,
+        persist_directory=str(CHROMA_PERSIST_DIRECTORY),
     )
 
     result = vector_store.get(include=["documents", "metadatas"])
