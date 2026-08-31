@@ -3,6 +3,7 @@
 # posts_router를 포함해서 FastAPI서버를 만들어줘 접두사는 api/v1으로 지정해.
 
 from fastapi import FastAPI
+import app.models
 from app.api.v1.posts import router as posts_router
 from app.api.v1.ai import router as ai_router
 
