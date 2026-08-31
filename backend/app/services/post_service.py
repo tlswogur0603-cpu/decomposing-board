@@ -14,7 +14,7 @@ from app.repositories.post_repository import (
     update_post,
 )
 from app.schemas.post import PostCreate, PostPaginationResponse, PostUpdate
-from backend.app.tasks.indexing_task import delete_post_index, run_indexing
+from app.tasks.indexing_task import delete_post_index, run_indexing
 
 
 async def create_post_service(

@@ -4,8 +4,8 @@ from langchain_core.documents import Document
 from langchain_chroma import Chroma
 
 from app.core.constants import POST_CHUNK_OVERLAP, POST_CHUNK_SIZE
-from backend.app.rag.embedding import get_embedding_model
-from backend.app.rag.chunking import split_post_content
+from app.rag.embedding import get_embedding_model
+from app.rag.chunking import split_post_content
 
 COLLECTION_NAME = "traceboard_posts"
 PERSIST_DIRECTORY = "./chroma_db"

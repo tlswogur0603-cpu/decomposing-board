@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.ai import AIQueryResponse, PostIndexResponse, SourcePost
 from app.repositories.post_repository import get_post_by_id
 from app.repositories.vector_repository import save_post_to_vector_store, search_similar_posts
-from backend.app.rag.llm import generate_answer
+from app.rag.llm import generate_answer
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
