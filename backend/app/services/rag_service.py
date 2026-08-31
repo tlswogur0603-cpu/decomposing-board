@@ -19,10 +19,20 @@ async def index_single_post_service(db: AsyncSession, post_id: int) -> PostIndex
             detail="해당 게시글을 찾을 수 없습니다.",
         )
 
-    indexed_count = await save_post_to_vector_store(
-        post_id=post.id,
-        title=post.title,
-        content=post.content,   
+    try:
+        indexed_count = await save_post_to_vector_store(
+            post_id=post.id,
+            title=post.title,
+            content=post.content,
+        )
+    except Exception:
+        logger.exception("❌ indexing failed: post_id=%s", post.id)
+        raise
+
+    logger.info(
+        "✅ indexing completed: post_id=%s, chunk_count=%s",
+        post.id,
+        indexed_count,
     )
 
     return PostIndexResponse(
