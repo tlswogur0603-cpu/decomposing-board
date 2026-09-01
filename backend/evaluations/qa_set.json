@@ -1,0 +1,58 @@
+{
+  "items": [
+
+    { "question": "출장 다녀오고 나서 영수증 챙겨가지고 정산 신청하려면 며칠 안에 해야 돼?", "relevant_post_ids": [5025] },
+    { "question": "해외로 출장 나갈 때 하루 밥값이나 잡비 같은 건 얼마씩 나와?", "relevant_post_ids": [5025] },
+
+    { "question": "연차를 반차 말고 2시간만 조퇴하듯이 나눠서 쓸 수도 있어?", "relevant_post_ids": [5026] },
+    { "question": "아내 출산했을 때 남편은 며칠 동안 쉬는 게 가능해?", "relevant_post_ids": [5026] },
+    { "question": "아파서 병가 내고 싶은데, 진료 기록이나 진단서 같은 서류는 며칠 이상 쉬어야 제출하는 거야?", "relevant_post_ids": [5026] },
+
+    { "question": "회사 시스템 비밀번호 바꿀 때 몇 글자 이상으로 만들어야 하고, 옛날에 쓰던 비밀번호도 다시 쓸 수 있어?", "relevant_post_ids": [5027] },
+    { "question": "일하다가 잠시 화장실 가거나 자리 비울 때 화면 잠금 타임아웃 시간은 몇 분으로 설정해 둬야 돼?", "relevant_post_ids": [5027] },
+    { "question": "업무할 때 챗GPT 같은 AI 도구 써도 될 것 같은데, 회사 코드를 질문으로 넣어서 물어봐도 괜찮아?", "relevant_post_ids": [5027] },
+
+    { "question": "입사한 지 두 달 정도 된 신입사원도 연말 정기 인사평가 대상에 포함돼?", "relevant_post_ids": [5028] },
+    { "question": "내 연말 평가 결과가 도저히 납득이 안 되는데, 이의 신청은 언제까지 어디로 내야 해?", "relevant_post_ids": [5028] },
+
+    { "question": "팀장님한테 미리 말 안 하고 혼자 남아서 늦게까지 일했어도 야근 수당이랑 택시비 받을 수 있어?", "relevant_post_ids": [5029] },
+    { "question": "밤 8시 넘어서까지 야근할 때 저녁 밥값은 얼마까지 법인카드로 결제할 수 있어?", "relevant_post_ids": [5029] },
+
+    { "question": "새로 사내 동호회 하나 만들려고 하는데, 우리 팀 사람들로만 5명 모아서 만들어도 상관없어?", "relevant_post_ids": [5030] },
+    { "question": "동호회 등록하면 회사에서 매달 한 사람당 지원금이 얼마나 나와?", "relevant_post_ids": [5030] },
+
+    { "question": "새로 입사해서 수습기간을 보내는 동안에는 월급이 깎여서 나와, 아니면 100% 다 나와?", "relevant_post_ids": [5031] },
+    { "question": "신입사원 수습 평가 때 점수를 몇 점 이상 받아야 무사히 정규직으로 전환돼?", "relevant_post_ids": [5031] },
+    { "question": "수습기간 3개월 끝나기 전에 언제쯤부터 수습 평가를 받고 성과서 같은 걸 내야 해?", "relevant_post_ids": [5031] },
+    { "question": "입사한 지 3개월도 안 된 사람은 연말 인사평가 대신 어떤 평가를 받아?", "relevant_post_ids": [5031] },
+
+    { "question": "개발자나 AI 엔지니어로 입사하면 회사에서 노트북이나 컴퓨터 스펙을 어느 정도로 맞춰서 줘?", "relevant_post_ids": [5032] },
+    { "question": "컴퓨터나 모니터 같은 업무용 장비는 입사하고 몇 년 지나야 새 걸로 교체해 줘?", "relevant_post_ids": [5032] },
+    { "question": "업무하다가 피그마 같은 프로그램이나 서비스 쓰려면 어디서 어떻게 신청해야 돼?", "relevant_post_ids": [5032] },
+
+    { "question": "건강검진 받으러 갈 때 내 연차에서 까이는 거야, 아니면 따로 쉬는 날을 줘?", "relevant_post_ids": [5033] },
+    { "question": "헬스장이나 수영장 다닐 때 회사에서 지원해 주는 운동비는 한 달에 얼마까지 나와?", "relevant_post_ids": [5033] },
+    { "question": "매일 컴퓨터로 오래 일하는 사무직도 정기적으로 건강검진 받을 수 있어?", "relevant_post_ids": [5033] },
+
+    { "question": "업무하다가 거래처에서 어쩔 수 없이 작은 선물을 받았는데, 얼마짜리까지는 괜찮고 어디에 말해야 해?", "relevant_post_ids": [5034] },
+    { "question": "회사에 다니는 동안 사내 윤리 교육은 일년에 몇 번이나 들어야 해?", "relevant_post_ids": [5034] },
+
+    { "question": "진짜 DB에 있는 실데이터를 테스트나 개발용 DB로 복사해서 써도 돼?", "relevant_post_ids": [5035] },
+    { "question": "DB 백업 데이터는 백업하고 나서 최소 몇 달 동안 보관해야 해?", "relevant_post_ids": [5035] },
+    { "question": "DB가 다운되거나 터지는 장애가 생겼을 때, 복구 끝나고 몇 시간 안에 장애 보고서를 작성해 제출해야 해?", "relevant_post_ids": [5035] },
+
+    { "question": "회사에서 사고가 나서 사람이 다쳤을 때 담당자가 사고 원인을 조사하고 보고서를 작성해야 하는 기한이 언제까지야?", "relevant_post_ids": [5036] },
+    { "question": "회사에 처음 입사했을 때 안전 교육은 들어온 지 며칠 안에, 그리고 몇 시간 이상 받아야 해?", "relevant_post_ids": [5036] },
+    { "question": "컴퓨터 앞에서 오랫동안 일할 때 눈이나 목, 허리 건강을 지키려면 몇 시간 일하고 얼마나 쉬어야 해?", "relevant_post_ids": [5036] }
+    
+  ],
+
+
+
+
+  "template": {
+    "question": "여기에 질문을 입력하세요",
+    "relevant_post_ids": [1]
+  },
+  "note": "실제 QA는 items 배열에 추가하세요. template은 입력 형식을 보여주는 예시입니다."
+}
