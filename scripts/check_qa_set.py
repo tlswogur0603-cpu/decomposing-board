@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+BACKEND_ROOT = PROJECT_ROOT / "backend"
+for import_path in (PROJECT_ROOT, BACKEND_ROOT):
+    if str(import_path) not in sys.path:
+        sys.path.insert(0, str(import_path))
+
 from backend.app.utils.qa_loader import load_qa_set
 
 

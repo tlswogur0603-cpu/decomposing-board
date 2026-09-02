@@ -1,1 +1,1 @@
-from app.utils.qa_loader import load_qa_set
+from .qa_loader import load_qa_set
