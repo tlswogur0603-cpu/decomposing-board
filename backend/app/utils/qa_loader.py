@@ -4,10 +4,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.schemas.evaluation import QAEvaluationItem
+from ..schemas.evaluation import QAEvaluationItem
 
 
-EVALUATION_DIR = Path(__file__).resolve().parents[3] / "evaluations"
+EVALUATION_DIR = Path(__file__).resolve().parents[2] / "evaluations"
 QA_SET_PATH = EVALUATION_DIR / "qa_set.json"
 
 
