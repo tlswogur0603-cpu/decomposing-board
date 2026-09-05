@@ -7,7 +7,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     DATABASE_URL: str
-    GEMINI_API_KEY: str
+    GEMINI_API_KEY: str | None = None
+    EMBEDDING_PROVIDER: str = "gemini"
+    HF_MODEL_NAME: str = "BAAI/bge-m3"
+    HF_DEVICE: str | None = None
+    HF_BATCH_SIZE: int = 32
+    CHROMA_COLLECTION_NAME: str | None = None
 
     model_config = SettingsConfigDict(
     env_file=".env",

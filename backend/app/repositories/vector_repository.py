@@ -9,14 +9,30 @@ from app.core.constants import (
     POST_CHUNK_OVERLAP,
     POST_CHUNK_SIZE,
 )
+from app.core.config import settings
 from app.rag.embedding import get_embedding_model
 from app.rag.chunking import split_post_content
 
 
-def get_vector_store() -> Chroma:
+def get_active_collection_name() -> str:
+    if settings.CHROMA_COLLECTION_NAME:
+        return settings.CHROMA_COLLECTION_NAME
+
+    provider = settings.EMBEDDING_PROVIDER.strip().lower()
+    if provider in {"hf", "huggingface", "sentence-transformers"}:
+        model_slug = settings.HF_MODEL_NAME.rsplit("/", maxsplit=1)[-1]
+        model_slug = "".join(
+            character.lower() if character.isalnum() else "_"
+            for character in model_slug
+        ).strip("_")
+        return f"{CHROMA_COLLECTION_NAME}_hf_{model_slug}"
+    return CHROMA_COLLECTION_NAME
+
+
+def get_vector_store(collection_name: str | None = None) -> Chroma:
     embedding_model = get_embedding_model()
     return Chroma(
-        collection_name=CHROMA_COLLECTION_NAME,
+        collection_name=collection_name or get_active_collection_name(),
         persist_directory=str(CHROMA_PERSIST_DIRECTORY),
         embedding_function=embedding_model,
     )
