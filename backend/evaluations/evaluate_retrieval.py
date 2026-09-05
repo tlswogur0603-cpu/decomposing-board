@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import os
 import sys
 from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
@@ -21,13 +22,14 @@ from typing import Any
 import pandas as pd
 from langchain_core.documents import Document
 
-BACKEND_ROOT = Path(__file__).resolve().parents[1]
-if str(BACKEND_ROOT) not in sys.path:
-    sys.path.insert(0, str(BACKEND_ROOT))
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+BACKEND_ROOT = PROJECT_ROOT / "backend"
+for import_path in (PROJECT_ROOT, BACKEND_ROOT):
+    if str(import_path) not in sys.path:
+        sys.path.insert(0, str(import_path))
+DEFAULT_QA_SET_PATH = BACKEND_ROOT / "evaluations" / "qa_set.json"
 
-from app.repositories.vector_repository import search_similar_posts
-from app.schemas.evaluation import QAEvaluationItem
-from app.utils.qa_loader import QA_SET_PATH, load_qa_set
+from backend.app.schemas.evaluation import QAEvaluationItem
 
 SearchFunction = Callable[[str, int], Awaitable[list[Document]]]
 
@@ -63,7 +65,7 @@ def evaluate_qa_set(
     qa_items: Sequence[QAEvaluationItem],
     *,
     top_k_values: Sequence[int] = (1, 3, 5),
-    search_fn: SearchFunction = search_similar_posts,
+    search_fn: SearchFunction | None = None,
     model_name: str = "gemini",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """QA별 상세 결과와 전체 지표 요약 DataFrame을 반환한다."""
@@ -72,10 +74,17 @@ def evaluate_qa_set(
         raise ValueError("top_k_values에는 1 이상의 값이 하나 이상 필요합니다.")
 
     async def run_searches() -> list[dict[str, Any]]:
+        if search_fn is None:
+            from app.repositories.vector_repository import search_similar_posts
+
+            active_search_fn = search_similar_posts
+        else:
+            active_search_fn = search_fn
+
         rows: list[dict[str, Any]] = []
         max_k = normalized_k[-1]
         for item in qa_items:
-            documents = await search_fn(item.question, max_k)
+            documents = await active_search_fn(item.question, max_k)
             retrieved_post_ids = _unique_post_ids(documents)
             rank = _first_relevant_rank(
                 retrieved_post_ids,
@@ -130,8 +139,8 @@ def main() -> None:
     parser.add_argument(
         "--qa-path",
         type=Path,
-        default=QA_SET_PATH,
-        help=f"QA JSON 경로 (기본값: {QA_SET_PATH})",
+        default=DEFAULT_QA_SET_PATH,
+        help=f"QA JSON 경로 (기본값: {DEFAULT_QA_SET_PATH})",
     )
     parser.add_argument(
         "--top-k",
@@ -141,8 +150,20 @@ def main() -> None:
     )
     parser.add_argument(
         "--model-name",
-        default="gemini",
-        help="결과에 표시할 임베딩 모델 이름",
+        help="결과에 표시할 임베딩 모델 이름 (기본값: provider)",
+    )
+    parser.add_argument(
+        "--provider",
+        choices=("gemini", "huggingface"),
+        help="검색에 사용할 임베딩 provider (기본값: 환경 설정)",
+    )
+    parser.add_argument(
+        "--hf-model-name",
+        help="Hugging Face 모델명 (provider가 huggingface일 때 선택)",
+    )
+    parser.add_argument(
+        "--collection-name",
+        help="검색할 Chroma 컬렉션명 (선택)",
     )
     parser.add_argument(
         "--output",
@@ -151,15 +172,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if args.provider:
+        os.environ["EMBEDDING_PROVIDER"] = args.provider
+    if args.hf_model_name:
+        os.environ["HF_MODEL_NAME"] = args.hf_model_name
+    if args.collection_name:
+        os.environ["CHROMA_COLLECTION_NAME"] = args.collection_name
+
+    from backend.app.utils.qa_loader import load_qa_set
+
     qa_items = load_qa_set(args.qa_path)
+    model_name = args.model_name or os.getenv("EMBEDDING_PROVIDER", "gemini")
     detail_df, summary_df = evaluate_qa_set(
         qa_items,
         top_k_values=args.top_k,
-        model_name=args.model_name,
+        model_name=model_name,
     )
 
     print(f"QA 파일: {args.qa_path}")
-    print(f"임베딩 모델: {args.model_name}")
+    print(f"임베딩 모델: {model_name}")
     print("\n전체 평가 지표")
     print(summary_df.to_string(index=False))
     print("\n질문별 평가 결과")

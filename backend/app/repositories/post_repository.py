@@ -33,6 +33,11 @@ async def fetch_posts_list(
     return list(result.scalars().all())
 
 
+async def fetch_all_posts(db: AsyncSession) -> list[Post]:
+    result = await db.execute(select(Post).order_by(Post.id.asc()))
+    return list(result.scalars().all())
+
+
 async def search_posts_repository(db: AsyncSession, q: str) -> list[Post]:
     trimmed_q = q.strip()
     if not trimmed_q:
