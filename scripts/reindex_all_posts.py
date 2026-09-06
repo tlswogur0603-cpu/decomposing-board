@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
+import selectors
 import sys
 from pathlib import Path
 
@@ -36,6 +37,18 @@ def parse_args() -> argparse.Namespace:
         help="저장할 Chroma 컬렉션명 (선택)",
     )
     return parser.parse_args()
+
+
+def run_async(coroutine):
+    """Windows psycopg 연결에 호환되는 이벤트 루프로 코루틴을 실행한다."""
+    if sys.platform == "win32":
+        loop_factory = lambda: asyncio.SelectorEventLoop(
+            selectors.SelectSelector()
+        )
+        with asyncio.Runner(loop_factory=loop_factory) as runner:
+            return runner.run(coroutine)
+
+    return asyncio.run(coroutine)
 
 
 async def reindex_all_posts() -> int:
@@ -76,7 +89,7 @@ def main() -> None:
     if args.collection_name:
         os.environ["CHROMA_COLLECTION_NAME"] = args.collection_name
 
-    raise SystemExit(asyncio.run(reindex_all_posts()))
+    raise SystemExit(run_async(reindex_all_posts()))
 
 
 if __name__ == "__main__":
