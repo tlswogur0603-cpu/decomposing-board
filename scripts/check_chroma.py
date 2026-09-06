@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 from typing import Any
@@ -27,8 +28,16 @@ def _safe_get(items: list[Any], index: int, default: Any = None) -> Any:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Chroma 컬렉션의 청크 확인")
+    parser.add_argument(
+        "--collection-name",
+        default=CHROMA_COLLECTION_NAME,
+        help=f"확인할 컬렉션명 (기본값: {CHROMA_COLLECTION_NAME})",
+    )
+    args = parser.parse_args()
+
     vector_store = Chroma(
-        collection_name=CHROMA_COLLECTION_NAME,
+        collection_name=args.collection_name,
         persist_directory=str(CHROMA_PERSIST_DIRECTORY),
     )
 
